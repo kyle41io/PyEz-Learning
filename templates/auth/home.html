@@ -1,0 +1,147 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% trans "PyEz Learning - Python Learning Platform" %}</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Nunito', 'sans-serif'] },
+          colors: {
+            primary: 'var(--primary-color)',
+            paper: 'var(--bg-paper)',
+            surface: 'var(--bg-surface)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --primary-color: #df4a39;
+      --bg-paper: #f3f4f6;
+      --bg-surface: #ffffff;
+      --text-main: #1f2937;
+    }
+
+    .dark {
+      --bg-paper: #111827;
+      --bg-surface: #1f2937;
+      --text-main: #f9fafb;
+    }
+
+    body {
+      background-color: var(--bg-paper);
+      color: var(--text-main);
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+  <!-- Navigation Bar -->
+  <nav class="bg-surface shadow-md sticky top-0 z-50 h-16 border-b border-gray-200 dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
+      <div class="flex items-center cursor-pointer" onclick="window.location.href='/'">
+        <div
+          class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white text-2xl shadow-lg mr-2 transform hover:rotate-12 transition">
+          🐍</div>
+        <span class="font-extrabold text-2xl text-primary tracking-tighter">PyEz</span>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <a href="{% url 'signin' %}"
+          class="px-6 py-2 bg-primary text-white rounded-lg font-bold hover:shadow-lg transition">
+          {% trans "Sign In" %}
+        </a>
+        <a href="{% url 'signup' %}"
+          class="px-6 py-2 border-2 border-primary text-primary rounded-lg font-bold hover:bg-primary hover:text-white transition">
+          {% trans "Sign Up" %}
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <main class="flex-grow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <div class="space-y-8">
+        <div>
+          <h1 class="text-5xl sm:text-6xl font-extrabold text-primary mb-4">
+            {% trans "Learn Python" %} <span class="text-gray-800 dark:text-white">{% trans "The Easy Way" %}</span>
+          </h1>
+          <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            {% trans "Master Python programming with interactive lessons, real-world projects, and a supportive
+            community. Start your coding journey today!" %}
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="{% url 'signup' %}"
+            class="px-8 py-3 bg-primary text-white rounded-lg font-bold text-lg hover:shadow-lg transition transform hover:scale-105">
+            {% trans "Get Started Free" %}
+          </a>
+          <a href="#features"
+            class="px-8 py-3 border-2 border-primary text-primary rounded-lg font-bold text-lg hover:bg-primary hover:text-white transition">
+            {% trans "Learn More" %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div id="features" class="mt-20 grid sm:grid-cols-3 gap-8">
+        <div class="bg-surface rounded-xl p-6 shadow-md hover:shadow-lg transition">
+          <div class="text-4xl mb-3">📚</div>
+          <h3 class="text-xl font-bold mb-2">{% trans "Interactive Lessons" %}</h3>
+          <p class="text-gray-600 dark:text-gray-300">{% trans "Learn Python step by step with interactive lessons and
+            real-time feedback." %}</p>
+        </div>
+
+        <div class="bg-surface rounded-xl p-6 shadow-md hover:shadow-lg transition">
+          <div class="text-4xl mb-3">🏆</div>
+          <h3 class="text-xl font-bold mb-2">{% trans "Track Progress" %}</h3>
+          <p class="text-gray-600 dark:text-gray-300">{% trans "Earn stars, climb leaderboards, and celebrate your
+            coding milestones." %}</p>
+        </div>
+
+        <div class="bg-surface rounded-xl p-6 shadow-md hover:shadow-lg transition">
+          <div class="text-4xl mb-3">👨‍🏫</div>
+          <h3 class="text-xl font-bold mb-2">{% trans "Expert Teachers" %}</h3>
+          <p class="text-gray-600 dark:text-gray-300">{% trans "Learn from experienced Python developers and educators."
+            %}</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-surface border-t border-gray-200 dark:border-gray-700 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-gray-400 text-sm italic">{% trans "First, solve the problem. Then, write the code." %}</p>
+      <p class="text-gray-300 dark:text-gray-600 text-xs mt-4 uppercase tracking-widest">&copy; 2025 {% trans "PyEz
+        Learning System" %}</p>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize dark mode
+    if (localStorage.getItem('mode') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+    if (localStorage.getItem('primaryColor')) {
+      document.documentElement.style.setProperty('--primary-color', localStorage.getItem('primaryColor'));
+    }
+  </script>
+</body>
+
+</html>

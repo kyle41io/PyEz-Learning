@@ -1,0 +1,119 @@
+# English translations for PyEz Learning.
+# Copyright (C) 2025 PyEz Learning System
+# This file is distributed under the same license as the PyEz Learning package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyEz Learning 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# All strings translate to themselves in English
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Curriculum"
+msgstr "Curriculum"
+
+msgid "Progress"
+msgstr "Progress"
+
+msgid "Teaching Content"
+msgstr "Teaching Content"
+
+msgid "Student User"
+msgstr "Student User"
+
+msgid "Stars"
+msgstr "Stars"
+
+msgid "My Profile"
+msgstr "My Profile"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Sign Out"
+msgstr "Sign Out"
+
+msgid "About PyEz"
+msgstr "About PyEz"
+
+msgid "Support"
+msgstr "Support"
+
+msgid "Python Tips"
+msgstr "Python Tips"
+
+msgid "First, solve the problem. Then, write the code."
+msgstr "First, solve the problem. Then, write the code."
+
+msgid "PyEz Learning System"
+msgstr "PyEz Learning System"
+
+msgid "Hot & Active Events"
+msgstr "Hot & Active Events"
+
+msgid "Ends"
+msgstr "Ends"
+
+msgid "Start Now"
+msgstr "Start Now"
+
+msgid "No stress! There are no active exams right now."
+msgstr "No stress! There are no active exams right now."
+
+msgid "My Progress"
+msgstr "My Progress"
+
+msgid "You have completed"
+msgstr "You have completed"
+
+msgid "out of"
+msgstr "out of"
+
+msgid "lessons."
+msgstr "lessons."
+
+msgid "Continue Learning"
+msgstr "Continue Learning"
+
+msgid "My Stars"
+msgstr "My Stars"
+
+msgid "Total Stars Earned"
+msgstr "Total Stars Earned"
+
+msgid "Top 10%"
+msgstr "Top 10%"
+
+msgid "Active Learner"
+msgstr "Active Learner"
+
+msgid "Leaderboard"
+msgstr "Leaderboard"
+
+msgid "Student"
+msgstr "Student"
+
+msgid "Be the first to join the leaderboard!"
+msgstr "Be the first to join the leaderboard!"
+
+msgid "View All Students"
+msgstr "View All Students"
+
+msgid "Theme Color"
+msgstr "Theme Color"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Dark mode"
+msgstr "Dark mode"

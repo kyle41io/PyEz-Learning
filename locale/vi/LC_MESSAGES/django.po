@@ -1,0 +1,120 @@
+# Vietnamese translations for PyEz Learning.
+# Copyright (C) 2025 PyEz Learning System
+# This file is distributed under the same license as the PyEz Learning package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyEz Learning 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Base template translations
+msgid "Dashboard"
+msgstr "Bảng Điều Khiển"
+
+msgid "Curriculum"
+msgstr "Chương Trình Học"
+
+msgid "Progress"
+msgstr "Tiến Độ"
+
+msgid "Teaching Content"
+msgstr "Nội Dung Giảng Dạy"
+
+msgid "Student User"
+msgstr "Người Dùng Sinh Viên"
+
+msgid "Stars"
+msgstr "Sao"
+
+msgid "My Profile"
+msgstr "Hồ Sơ Của Tôi"
+
+msgid "Settings"
+msgstr "Cài Đặt"
+
+msgid "Sign Out"
+msgstr "Đăng Xuất"
+
+msgid "About PyEz"
+msgstr "Về PyEz"
+
+msgid "Support"
+msgstr "Hỗ Trợ"
+
+msgid "Python Tips"
+msgstr "Mẹo Python"
+
+msgid "First, solve the problem. Then, write the code."
+msgstr "Trước tiên, giải quyết vấn đề. Sau đó, viết mã."
+
+msgid "PyEz Learning System"
+msgstr "Hệ Thống Học Tập PyEz"
+
+# Dashboard template translations
+msgid "Hot & Active Events"
+msgstr "Sự Kiện Nóng & Đang Hoạt Động"
+
+msgid "Ends"
+msgstr "Kết Thúc"
+
+msgid "Start Now"
+msgstr "Bắt Đầu Ngay"
+
+msgid "No stress! There are no active exams right now."
+msgstr "Không lo! Hiện tại không có bài kiểm tra nào đang hoạt động."
+
+msgid "My Progress"
+msgstr "Tiến Độ Của Tôi"
+
+msgid "You have completed"
+msgstr "Bạn đã hoàn thành"
+
+msgid "out of"
+msgstr "trong số"
+
+msgid "lessons."
+msgstr "bài học."
+
+msgid "Continue Learning"
+msgstr "Tiếp Tục Học Tập"
+
+msgid "My Stars"
+msgstr "Sao Của Tôi"
+
+msgid "Total Stars Earned"
+msgstr "Tổng Sao Kiếm Được"
+
+msgid "Top 10%"
+msgstr "Top 10%"
+
+msgid "Active Learner"
+msgstr "Người Học Tích Cực"
+
+msgid "Leaderboard"
+msgstr "Bảng Xếp Hạng"
+
+msgid "Student"
+msgstr "Sinh Viên"
+
+msgid "Be the first to join the leaderboard!"
+msgstr "Hãy là người đầu tiên tham gia bảng xếp hạng!"
+
+msgid "View All Students"
+msgstr "Xem Tất Cả Sinh Viên"
+
+msgid "Theme Color"
+msgstr "Màu chủ đề"
+
+msgid "Language"
+msgstr "Ngôn ngữ"
+
+msgid "Dark mode"
+msgstr "Chế độ tối"
