@@ -53,7 +53,7 @@ def signup(request):
         return redirect('dashboard')
     
     if request.method == 'POST':
-        form = SignUpForm(request.POST)
+        form = SignUpForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             # Redirect to signin page instead of auto-login
@@ -113,7 +113,7 @@ def profile(request):
     user = request.user
     
     if request.method == 'POST':
-        form = ProfileEditForm(request.POST, instance=user)
+        form = ProfileEditForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             try:
                 user_updated = form.save(user_instance=user, commit=True)

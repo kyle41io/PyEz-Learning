@@ -1,53 +1,42 @@
 # Vietnamese translations for PyEz Learning.
 # Copyright (C) 2025 PyEz Learning System
-# This file is distributed under the same license as the PyEz Learning package.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: PyEz Learning 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-01 00:00+0000\n"
-"PO-Revision-Date: 2025-01-01 00:00+0000\n"
-"Last-Translator: \n"
-"Language-Team: Vietnamese\n"
-"Language: vi\n"
-"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Language: vi\n"
 
-# Base template translations
+# Navigation and UI
 msgid "Dashboard"
-msgstr "Bảng Điều Khiển"
+msgstr "Bảng điều khiển"
 
 msgid "Curriculum"
-msgstr "Chương Trình Học"
+msgstr "Chương trình giảng dạy"
 
 msgid "Progress"
-msgstr "Tiến Độ"
+msgstr "Tiến độ"
 
 msgid "Teaching Content"
-msgstr "Nội Dung Giảng Dạy"
-
-msgid "Student User"
-msgstr "Người Dùng Sinh Viên"
+msgstr "Nội dung giảng dạy"
 
 msgid "Stars"
 msgstr "Sao"
 
 msgid "My Profile"
-msgstr "Hồ Sơ Của Tôi"
+msgstr "Hồ sơ của tôi"
 
 msgid "Settings"
-msgstr "Cài Đặt"
+msgstr "Cài đặt"
 
 msgid "Sign Out"
-msgstr "Đăng Xuất"
+msgstr "Đăng xuất"
 
 msgid "About PyEz"
 msgstr "Về PyEz"
 
 msgid "Support"
-msgstr "Hỗ Trợ"
+msgstr "Hỗ trợ"
 
 msgid "Python Tips"
 msgstr "Mẹo Python"
@@ -56,59 +45,227 @@ msgid "First, solve the problem. Then, write the code."
 msgstr "Trước tiên, giải quyết vấn đề. Sau đó, viết mã."
 
 msgid "PyEz Learning System"
-msgstr "Hệ Thống Học Tập PyEz"
+msgstr "Hệ thống học tập PyEz"
 
-# Dashboard template translations
+# Home page
+msgid "Python Learning Platform"
+msgstr "Nền tảng học tập Python"
+
+msgid "Learn Python"
+msgstr "Học Python"
+
+msgid "The Easy Way"
+msgstr "Cách dễ dàng"
+
+msgid "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
+msgstr "Làm chủ lập trình Python với các bài học tương tác, dự án thực tế và một cộng đồng hỗ trợ. Bắt đầu hành trình mã hóa của bạn ngay hôm nay!"
+
+msgid "Get Started Free"
+msgstr "Bắt đầu miễn phí"
+
+msgid "Learn More"
+msgstr "Tìm hiểu thêm"
+
+msgid "Interactive Lessons"
+msgstr "Bài học tương tác"
+
+msgid "Learn Python step by step with interactive lessons and real-time feedback."
+msgstr "Học Python từng bước với các bài học tương tác và phản hồi theo thời gian thực."
+
+msgid "Track Progress"
+msgstr "Theo dõi tiến độ"
+
+msgid "Earn stars, climb leaderboards, and celebrate your coding milestones."
+msgstr "Kiếm sao, leo bảng xếp hạng và ăn mừng những cột mốc mã hóa của bạn."
+
+msgid "Expert Teachers"
+msgstr "Giáo viên chuyên gia"
+
+msgid "Learn from experienced Python developers and educators."
+msgstr "Học từ những nhà phát triển Python và nhà giáo dục có kinh nghiệm."
+
+msgid "Sign In"
+msgstr "Đăng nhập"
+
+msgid "Sign Up"
+msgstr "Đăng ký"
+
+# Sign in/up forms
+msgid "Welcome Back"
+msgstr "Chào mừng trở lại"
+
+msgid "Email or Username"
+msgstr "Email hoặc Tên người dùng"
+
+msgid "Password"
+msgstr "Mật khẩu"
+
+msgid "Create Your Account"
+msgstr "Tạo tài khoản của bạn"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "First Name"
+msgstr "Tên"
+
+msgid "Last Name"
+msgstr "Họ"
+
+msgid "Username"
+msgstr "Tên người dùng"
+
+msgid "Profile Picture"
+msgstr "Ảnh hồ sơ"
+
+msgid "optional"
+msgstr "tùy chọn"
+
+msgid "Confirm Password"
+msgstr "Xác nhận mật khẩu"
+
+msgid "Create Account"
+msgstr "Tạo tài khoản"
+
+msgid "Don't have an account?"
+msgstr "Không có tài khoản?"
+
+msgid "Already have an account?"
+msgstr "Đã có tài khoản?"
+
+msgid "Note:"
+msgstr "Ghi chú:"
+
+msgid "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
+msgstr "Các tài khoản mới được tạo với vai trò Học sinh theo mặc định. Liên hệ với quản trị viên nếu bạn cần quyền truy cập Giáo viên."
+
+msgid "or"
+msgstr "hoặc"
+
+msgid "Sign in with Google"
+msgstr "Đăng nhập bằng Google"
+
+# Profile page
+msgid "Edit Profile"
+msgstr "Chỉnh sửa hồ sơ"
+
+msgid "Bio"
+msgstr "Tiểu sử"
+
+msgid "Change Password"
+msgstr "Đổi mật khẩu"
+
+msgid "Current Password"
+msgstr "Mật khẩu hiện tại"
+
+msgid "New Password"
+msgstr "Mật khẩu mới"
+
+msgid "Confirm New Password"
+msgstr "Xác nhận mật khẩu mới"
+
+msgid "Save Changes"
+msgstr "Lưu thay đổi"
+
+msgid "Cancel"
+msgstr "Hủy"
+
+msgid "Account Information"
+msgstr "Thông tin tài khoản"
+
+msgid "Email Address"
+msgstr "Địa chỉ email"
+
+msgid "Email cannot be changed"
+msgstr "Email không thể thay đổi"
+
+msgid "Username cannot be changed"
+msgstr "Tên người dùng không thể thay đổi"
+
+msgid "Account Role"
+msgstr "Vai trò tài khoản"
+
+msgid "Contact an administrator to change your role"
+msgstr "Liên hệ với quản trị viên để thay đổi vai trò của bạn"
+
+msgid "Member Since"
+msgstr "Thành viên kể từ"
+
+msgid "ago"
+msgstr "trước đây"
+
+msgid "Active"
+msgstr "Hoạt động"
+
+msgid "Account Status"
+msgstr "Trạng thái tài khoản"
+
+msgid "Joined"
+msgstr "Tham gia"
+
+msgid "Upload an image file. Changes will appear after saving."
+msgstr "Tải lên một tệp hình ảnh. Các thay đổi sẽ xuất hiện sau khi lưu."
+
+msgid "Tell us about yourself - this will be visible on your profile"
+msgstr "Cho chúng tôi biết về bạn - điều này sẽ hiển thị trên hồ sơ của bạn"
+
+msgid "Required for security verification"
+msgstr "Bắt buộc để xác minh bảo mật"
+
+msgid "Leave blank if you don't want to change your password"
+msgstr "Để trống nếu bạn không muốn thay đổi mật khẩu"
+
+# Dashboard
 msgid "Hot & Active Events"
-msgstr "Sự Kiện Nóng & Đang Hoạt Động"
+msgstr "Sự kiện Nóng & Hoạt động"
 
 msgid "Ends"
-msgstr "Kết Thúc"
+msgstr "Kết thúc"
 
 msgid "Start Now"
-msgstr "Bắt Đầu Ngay"
+msgstr "Bắt đầu ngay"
 
 msgid "No stress! There are no active exams right now."
-msgstr "Không lo! Hiện tại không có bài kiểm tra nào đang hoạt động."
+msgstr "Không lo! Hiện tại không có bài kiểm tra nào hoạt động."
 
 msgid "My Progress"
-msgstr "Tiến Độ Của Tôi"
+msgstr "Tiến độ của tôi"
 
 msgid "You have completed"
 msgstr "Bạn đã hoàn thành"
 
 msgid "out of"
-msgstr "trong số"
+msgstr "từ"
 
 msgid "lessons."
 msgstr "bài học."
 
 msgid "Continue Learning"
-msgstr "Tiếp Tục Học Tập"
+msgstr "Tiếp tục học"
 
 msgid "My Stars"
-msgstr "Sao Của Tôi"
+msgstr "Sao của tôi"
 
 msgid "Total Stars Earned"
-msgstr "Tổng Sao Kiếm Được"
+msgstr "Tổng số sao kiếm được"
 
 msgid "Top 10%"
 msgstr "Top 10%"
 
 msgid "Active Learner"
-msgstr "Người Học Tích Cực"
+msgstr "Người học hoạt động"
 
 msgid "Leaderboard"
-msgstr "Bảng Xếp Hạng"
+msgstr "Bảng xếp hạng"
 
 msgid "Student"
-msgstr "Sinh Viên"
+msgstr "Học sinh"
 
 msgid "Be the first to join the leaderboard!"
 msgstr "Hãy là người đầu tiên tham gia bảng xếp hạng!"
 
 msgid "View All Students"
-msgstr "Xem Tất Cả Sinh Viên"
+msgstr "Xem tất cả học sinh"
 
 msgid "Theme Color"
 msgstr "Màu chủ đề"
@@ -120,155 +277,7 @@ msgid "Dark mode"
 msgstr "Chế độ tối"
 
 msgid "Footer title"
-msgstr "Fun, love and code"
+msgstr "Vui vẻ, yêu thương và mã"
 
-# Home page translations
-msgid "Python Learning Platform"
-msgstr "Nền Tảng Học Tập Python"
-
-msgid "Learn Python"
-msgstr "Học Python"
-
-msgid "The Easy Way"
-msgstr "Cách Dễ Dàng"
-
-msgid "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
-msgstr "Nắm vững lập trình Python với các bài học tương tác, dự án thực tế và cộng đồng hỗ trợ. Bắt đầu hành trình lập trình của bạn ngay hôm nay!"
-
-msgid "Get Started Free"
-msgstr "Bắt Đầu Miễn Phí"
-
-msgid "Learn More"
-msgstr "Tìm Hiểu Thêm"
-
-msgid "Interactive Lessons"
-msgstr "Bài Học Tương Tác"
-
-msgid "Learn Python step by step with interactive lessons and real-time feedback."
-msgstr "Học Python từng bước với các bài học tương tác và phản hồi thời gian thực."
-
-msgid "Track Progress"
-msgstr "Theo Dõi Tiến Độ"
-
-msgid "Earn stars, climb leaderboards, and celebrate your coding milestones."
-msgstr "Kiếm sao, leo lên bảng xếp hạng và ăn mừng các cột mốc lập trình của bạn."
-
-msgid "Expert Teachers"
-msgstr "Giáo Viên Chuyên Gia"
-
-msgid "Learn from experienced Python developers and educators."
-msgstr "Học từ các nhà phát triển Python và nhà giáo dục có kinh nghiệm."
-
-msgid "Sign In"
-msgstr "Đăng Nhập"
-
-msgid "Sign Up"
-msgstr "Đăng Ký"
-
-msgid "Username"
-msgstr "Tên Người Dùng"
-
-msgid "Profile Picture"
-msgstr "Ảnh Đại Diện"
-
-msgid "optional"
-msgstr "tùy chọn"
-
-msgid "Create Your Account"
-msgstr "Tạo Tài Khoản Của Bạn"
-
-msgid "Password"
-msgstr "Mật Khẩu"
-
-msgid "Confirm Password"
-msgstr "Xác Nhận Mật Khẩu"
-
-msgid "First Name"
-msgstr "Tên"
-
-msgid "Last Name"
-msgstr "Họ"
-
-msgid "Email"
-msgstr "Email"
-
-msgid "Note:"
-msgstr "Lưu Ý:"
-
-msgid "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
-msgstr "Các tài khoản mới được tạo với vai trò Sinh Viên theo mặc định. Liên hệ quản trị viên nếu bạn cần quyền truy cập Giáo viên."
-
-msgid "Already have an account?"
-msgstr "Đã có tài khoản rồi?"
-
-msgid "My Profile"
-msgstr "Hồ Sơ Của Tôi"
-
-msgid "Edit Profile"
-msgstr "Chỉnh Sửa Hồ Sơ"
-
-msgid "Bio"
-msgstr "Tiểu Sử"
-
-msgid "Change Password"
-msgstr "Đổi Mật Khẩu"
-
-msgid "Current Password"
-msgstr "Mật Khẩu Hiện Tại"
-
-msgid "New Password"
-msgstr "Mật Khẩu Mới"
-
-msgid "Confirm New Password"
-msgstr "Xác Nhận Mật Khẩu Mới"
-
-msgid "Save Changes"
-msgstr "Lưu Thay Đổi"
-
-msgid "Cancel"
-msgstr "Hủy Bỏ"
-
-msgid "Account Information"
-msgstr "Thông Tin Tài Khoản"
-
-msgid "Email Address"
-msgstr "Địa Chỉ Email"
-
-msgid "Email cannot be changed"
-msgstr "Email không thể được thay đổi"
-
-msgid "Username cannot be changed"
-msgstr "Tên người dùng không thể được thay đổi"
-
-msgid "Account Role"
-msgstr "Vai Trò Tài Khoản"
-
-msgid "Contact an administrator to change your role"
-msgstr "Liên hệ quản trị viên để thay đổi vai trò của bạn"
-
-msgid "Member Since"
-msgstr "Thành Viên Từ"
-
-msgid "ago"
-msgstr "trước"
-
-msgid "Active"
-msgstr "Hoạt Động"
-
-msgid "Account Status"
-msgstr "Trạng Thái Tài Khoản"
-
-msgid "Joined"
-msgstr "Đã Tham Gia"
-
-msgid "Enter a valid image URL. Changes will appear after saving."
-msgstr "Nhập một URL hình ảnh hợp lệ. Thay đổi sẽ được hiển thị sau khi lưu."
-
-msgid "Tell us about yourself - this will be visible on your profile"
-msgstr "Hãy cho chúng tôi biết về bạn - điều này sẽ được hiển thị trên hồ sơ của bạn"
-
-msgid "Required for security verification"
-msgstr "Bắt buộc để xác minh bảo mật"
-
-msgid "Leave blank if you don't want to change your password"
-msgstr "Bỏ trống nếu bạn không muốn thay đổi mật khẩu của mình"
+msgid "Student User"
+msgstr "Người dùng học sinh"

@@ -1,21 +1,13 @@
 # English translations for PyEz Learning.
 # Copyright (C) 2025 PyEz Learning System
-# This file is distributed under the same license as the PyEz Learning package.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: PyEz Learning 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-01 00:00+0000\n"
-"PO-Revision-Date: 2025-01-01 00:00+0000\n"
-"Last-Translator: \n"
-"Language-Team: English\n"
-"Language: en\n"
-"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
 
-# All strings translate to themselves in English
+# Navigation and UI
 msgid "Dashboard"
 msgstr "Dashboard"
 
@@ -27,9 +19,6 @@ msgstr "Progress"
 
 msgid "Teaching Content"
 msgstr "Teaching Content"
-
-msgid "Student User"
-msgstr "Student User"
 
 msgid "Stars"
 msgstr "Stars"
@@ -58,6 +47,175 @@ msgstr "First, solve the problem. Then, write the code."
 msgid "PyEz Learning System"
 msgstr "PyEz Learning System"
 
+# Home page
+msgid "Python Learning Platform"
+msgstr "Python Learning Platform"
+
+msgid "Learn Python"
+msgstr "Learn Python"
+
+msgid "The Easy Way"
+msgstr "The Easy Way"
+
+msgid "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
+msgstr "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
+
+msgid "Get Started Free"
+msgstr "Get Started Free"
+
+msgid "Learn More"
+msgstr "Learn More"
+
+msgid "Interactive Lessons"
+msgstr "Interactive Lessons"
+
+msgid "Learn Python step by step with interactive lessons and real-time feedback."
+msgstr "Learn Python step by step with interactive lessons and real-time feedback."
+
+msgid "Track Progress"
+msgstr "Track Progress"
+
+msgid "Earn stars, climb leaderboards, and celebrate your coding milestones."
+msgstr "Earn stars, climb leaderboards, and celebrate your coding milestones."
+
+msgid "Expert Teachers"
+msgstr "Expert Teachers"
+
+msgid "Learn from experienced Python developers and educators."
+msgstr "Learn from experienced Python developers and educators."
+
+msgid "Sign In"
+msgstr "Sign In"
+
+msgid "Sign Up"
+msgstr "Sign Up"
+
+# Sign in/up forms
+msgid "Welcome Back"
+msgstr "Welcome Back"
+
+msgid "Email or Username"
+msgstr "Email or Username"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Create Your Account"
+msgstr "Create Your Account"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "First Name"
+msgstr "First Name"
+
+msgid "Last Name"
+msgstr "Last Name"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Profile Picture"
+msgstr "Profile Picture"
+
+msgid "optional"
+msgstr "optional"
+
+msgid "Confirm Password"
+msgstr "Confirm Password"
+
+msgid "Create Account"
+msgstr "Create Account"
+
+msgid "Don't have an account?"
+msgstr "Don't have an account?"
+
+msgid "Already have an account?"
+msgstr "Already have an account?"
+
+msgid "Note:"
+msgstr "Note:"
+
+msgid "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
+msgstr "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
+
+msgid "or"
+msgstr "or"
+
+msgid "Sign in with Google"
+msgstr "Sign in with Google"
+
+# Profile page
+msgid "Edit Profile"
+msgstr "Edit Profile"
+
+msgid "Bio"
+msgstr "Bio"
+
+msgid "Change Password"
+msgstr "Change Password"
+
+msgid "Current Password"
+msgstr "Current Password"
+
+msgid "New Password"
+msgstr "New Password"
+
+msgid "Confirm New Password"
+msgstr "Confirm New Password"
+
+msgid "Save Changes"
+msgstr "Save Changes"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Account Information"
+msgstr "Account Information"
+
+msgid "Email Address"
+msgstr "Email Address"
+
+msgid "Email cannot be changed"
+msgstr "Email cannot be changed"
+
+msgid "Username cannot be changed"
+msgstr "Username cannot be changed"
+
+msgid "Account Role"
+msgstr "Account Role"
+
+msgid "Contact an administrator to change your role"
+msgstr "Contact an administrator to change your role"
+
+msgid "Member Since"
+msgstr "Member Since"
+
+msgid "ago"
+msgstr "ago"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Account Status"
+msgstr "Account Status"
+
+msgid "Joined"
+msgstr "Joined"
+
+msgid "Upload an image file. Changes will appear after saving."
+msgstr "Upload an image file. Changes will appear after saving."
+
+msgid "Tell us about yourself - this will be visible on your profile"
+msgstr "Tell us about yourself - this will be visible on your profile"
+
+msgid "Required for security verification"
+msgstr "Required for security verification"
+
+msgid "Leave blank if you don't want to change your password"
+msgstr "Leave blank if you don't want to change your password"
+
+# Dashboard
 msgid "Hot & Active Events"
 msgstr "Hot & Active Events"
 
@@ -121,153 +279,5 @@ msgstr "Dark mode"
 msgid "Footer title"
 msgstr "Fun, love and code"
 
-# Home page translations
-msgid "Python Learning Platform"
-msgstr "Python Learning Platform"
-
-msgid "Learn Python"
-msgstr "Learn Python"
-
-msgid "The Easy Way"
-msgstr "The Easy Way"
-
-msgid "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
-msgstr "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
-
-msgid "Get Started Free"
-msgstr "Get Started Free"
-
-msgid "Learn More"
-msgstr "Learn More"
-
-msgid "Interactive Lessons"
-msgstr "Interactive Lessons"
-
-msgid "Learn Python step by step with interactive lessons and real-time feedback."
-msgstr "Learn Python step by step with interactive lessons and real-time feedback."
-
-msgid "Track Progress"
-msgstr "Track Progress"
-
-msgid "Earn stars, climb leaderboards, and celebrate your coding milestones."
-msgstr "Earn stars, climb leaderboards, and celebrate your coding milestones."
-
-msgid "Expert Teachers"
-msgstr "Expert Teachers"
-
-msgid "Learn from experienced Python developers and educators."
-msgstr "Learn from experienced Python developers and educators."
-
-msgid "Sign In"
-msgstr "Sign In"
-
-msgid "Sign Up"
-msgstr "Sign Up"
-
-msgid "Username"
-msgstr "Username"
-
-msgid "Profile Picture"
-msgstr "Profile Picture"
-
-msgid "optional"
-msgstr "optional"
-
-msgid "Create Your Account"
-msgstr "Create Your Account"
-
-msgid "Password"
-msgstr "Password"
-
-msgid "Confirm Password"
-msgstr "Confirm Password"
-
-msgid "First Name"
-msgstr "First Name"
-
-msgid "Last Name"
-msgstr "Last Name"
-
-msgid "Email"
-msgstr "Email"
-
-msgid "Note:"
-msgstr "Note:"
-
-msgid "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
-msgstr "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
-
-msgid "Already have an account?"
-msgstr "Already have an account?"
-
-msgid "My Profile"
-msgstr "My Profile"
-
-msgid "Edit Profile"
-msgstr "Edit Profile"
-
-msgid "Bio"
-msgstr "Bio"
-
-msgid "Change Password"
-msgstr "Change Password"
-
-msgid "Current Password"
-msgstr "Current Password"
-
-msgid "New Password"
-msgstr "New Password"
-
-msgid "Confirm New Password"
-msgstr "Confirm New Password"
-
-msgid "Save Changes"
-msgstr "Save Changes"
-
-msgid "Cancel"
-msgstr "Cancel"
-
-msgid "Account Information"
-msgstr "Account Information"
-
-msgid "Email Address"
-msgstr "Email Address"
-
-msgid "Email cannot be changed"
-msgstr "Email cannot be changed"
-
-msgid "Username cannot be changed"
-msgstr "Username cannot be changed"
-
-msgid "Account Role"
-msgstr "Account Role"
-
-msgid "Contact an administrator to change your role"
-msgstr "Contact an administrator to change your role"
-
-msgid "Member Since"
-msgstr "Member Since"
-
-msgid "ago"
-msgstr "ago"
-
-msgid "Active"
-msgstr "Active"
-
-msgid "Account Status"
-msgstr "Account Status"
-
-msgid "Joined"
-msgstr "Joined"
-
-msgid "Enter a valid image URL. Changes will appear after saving."
-msgstr "Enter a valid image URL. Changes will appear after saving."
-
-msgid "Tell us about yourself - this will be visible on your profile"
-msgstr "Tell us about yourself - this will be visible on your profile"
-
-msgid "Required for security verification"
-msgstr "Required for security verification"
-
-msgid "Leave blank if you don't want to change your password"
-msgstr "Leave blank if you don't want to change your password"
+msgid "Student User"
+msgstr "Student User"

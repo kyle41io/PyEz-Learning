@@ -65,11 +65,11 @@
       <!-- Authenticated User Navbar -->
       <div class="hidden md:flex space-x-6 items-center">
         <a href="{% url 'dashboard' %}"
-          class="text-gray-600 dark:text-gray-300 font-bold hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Dashboard" %}</a>
+          class="text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Dashboard" %}</a>
         <a href="#"
-          class="text-gray-600 dark:text-gray-300 font-bold hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Curriculum" %}</a>
+          class="text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Curriculum" %}</a>
         <a href="#"
-          class="text-gray-600 dark:text-gray-300 font-bold hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Progress" %}</a>
+          class="text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Progress" %}</a>
         {% if user.is_teacher %}
         <a href="#"
           class="text-primary font-bold border-2 border-primary px-3 py-1 rounded-lg hover:bg-primary hover:text-white transition">{%trans "Teaching Content" %}</a>
@@ -80,9 +80,16 @@
         <div class="relative">
           <button id="burgerBtn" onclick="toggleMenu()"
             class="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.first_name }}"
+              class="w-24 h-24 rounded-full object-cover border-4 border-primary shadow-lg">
+            {% else %}
             <div
-              class="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-md">{{ user.first_name|first|upper }}
+              class="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center text-4xl font-bold shadow-lg">
+              {{ user.first_name|first|upper }}
             </div>
+            {% endif %}
+
             <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
@@ -149,8 +156,7 @@
 
             <!-- Logout -->
             <a href="{% url 'signout' %}"
-              class="block px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition font-bold">{%trans
-              "Sign Out" %}</a>
+              class="block px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition font-bold">{%trans "Sign Out" %}</a>
           </div>
         </div>
       </div>

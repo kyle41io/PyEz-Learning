@@ -20,9 +20,9 @@ class SignUpForm(UserCreationForm):
         'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
         'placeholder': 'Last Name'
     }))
-    profile_picture = forms.URLField(required=False, widget=forms.URLInput(attrs={
+    profile_picture = forms.ImageField(required=False, widget=forms.FileInput(attrs={
         'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-        'placeholder': 'Profile Picture URL (optional)'
+        'accept': 'image/*'
     }))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={
         'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
@@ -180,9 +180,9 @@ class ProfileEditForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
                 'placeholder': 'Last Name'
             }),
-            'profile_picture': forms.URLInput(attrs={
+            'profile_picture': forms.FileInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-                'placeholder': 'Profile Picture URL'
+                'accept': 'image/*'
             }),
             'bio': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',

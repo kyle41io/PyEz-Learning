@@ -59,45 +59,75 @@ def set_language_view(request, language):
         return response
     return redirect('/')
 
-# 1. THE DASHBOARD VIEW (With Mock Data)
+# 1. THE DASHBOARD VIEW (With Real Data from Database)
 @login_required(login_url='signin')
 def student_dashboard(request):
-    # Mock Data for Active Exams
+    from django.db.models import Count
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    user = request.user
+    
+    # Mock Data for Active Exams (keeping as mock for now)
     active_exams = [
         {
             'title': 'Python Basics Mid-Term',
-            'end_time': datetime.now() + timedelta(days=2),
+            'end_time': timezone.now() + timedelta(days=2),
             'points_worth': 50
         },
         {
             'title': 'Algorithm Challenge',
-            'end_time': datetime.now() + timedelta(hours=5),
+            'end_time': timezone.now() + timedelta(hours=5),
             'points_worth': 100
         },
         {
             'title': 'Debug This Code',
-            'end_time': datetime.now() + timedelta(days=1),
+            'end_time': timezone.now() + timedelta(days=1),
             'points_worth': 30
         }
     ]
 
-    # Mock Data for Leaderboard
+    # Get real user stats
+    user_stars = user.star_points
+    
+    # Get real progress from database
+    from .models import Lesson, Progress
+    total_lessons = Lesson.objects.count()
+    completed_lessons = Progress.objects.filter(student=user, is_completed=True).count()
+    
+    progress_percent = 0
+    if total_lessons > 0:
+        progress_percent = int((completed_lessons / total_lessons) * 100)
+    
+    
+    # Get real leaderboard from database
+    from users.models import User
+    
+    # Get all students ordered by star points
+    leaderboard_students = User.objects.filter(role='student').order_by('-star_points')[:5]
+    
+    # Check if all have 0 stars
+    if leaderboard_students.exists() and all(s.star_points == 0 for s in leaderboard_students):
+        # If all have 0 stars, get random 5 students instead
+        leaderboard_students = User.objects.filter(role='student').order_by('?')[:5]
+    
     leaderboard = [
-        {'username': 'Alex', 'star_points': 1250},
-        {'username': 'Sarah', 'star_points': 980},
-        {'username': 'Mike', 'star_points': 850},
-        {'username': 'Emily', 'star_points': 720},
-        {'username': 'John', 'star_points': 600},
+        {
+            'username': student.username,
+            'star_points': student.star_points,
+            'first_name': student.first_name
+        }
+        for student in leaderboard_students
     ]
 
     context = {
-        # Fake User Stats
-        'user_stars': 450, 
-        'progress_percent': 65,
-        'completed_lessons': 13,
-        'total_lessons': 20,
+        # Real User Stats
+        'user_stars': user_stars,
+        'progress_percent': progress_percent,
+        'completed_lessons': completed_lessons,
+        'total_lessons': total_lessons,
         
-        # Fake Lists
+        # Lists
         'active_exams': active_exams,
         'leaderboard': leaderboard,
     }
