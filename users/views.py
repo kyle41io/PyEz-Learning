@@ -4,15 +4,16 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponseForbidden
+from allauth.socialaccount.models import SocialApp
 from .models import User
-from .forms import SignUpForm, SignInForm, CreateTeacherForm
+from .forms import SignUpForm, SignInForm, CreateTeacherForm, ProfileEditForm
 
 
 def home(request):
-    """Home page - shows login/signup for unauthenticated users"""
+    """Home page - shows landing page for unauthenticated, dashboard for authenticated"""
     if request.user.is_authenticated:
         return redirect('dashboard')
-    return render(request, 'auth/home.html')
+    return render(request, 'auth/home.html', {'is_authenticated': False})
 
 
 @require_http_methods(["GET", "POST"])
@@ -20,6 +21,13 @@ def signin(request):
     """Sign in view for existing users"""
     if request.user.is_authenticated:
         return redirect('dashboard')
+    
+    # Check if Google OAuth is configured
+    try:
+        google_app = SocialApp.objects.get(provider='google')
+        has_google_oauth = True
+    except SocialApp.DoesNotExist:
+        has_google_oauth = False
     
     if request.method == 'POST':
         form = SignInForm(request, data=request.POST)
@@ -32,7 +40,10 @@ def signin(request):
     else:
         form = SignInForm()
     
-    return render(request, 'auth/signin.html', {'form': form})
+    return render(request, 'auth/signin.html', {
+        'form': form,
+        'has_google_oauth': has_google_oauth
+    })
 
 
 @require_http_methods(["GET", "POST"])
@@ -45,10 +56,9 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Auto-login after signup
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('dashboard')
+            # Redirect to signin page instead of auto-login
+            messages.success(request, 'Account created successfully! Please sign in.')
+            return redirect('signin')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -95,3 +105,36 @@ def create_teacher(request):
         'teachers': User.objects.filter(role='teacher')
     }
     return render(request, 'auth/create_teacher.html', context)
+
+@login_required(login_url='signin')
+@require_http_methods(["GET", "POST"])
+def profile(request):
+    """User profile page - view and edit user information"""
+    user = request.user
+    
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, instance=user)
+        if form.is_valid():
+            try:
+                user_updated = form.save(user_instance=user, commit=True)
+                # If password was changed, we need to update the session
+                if form.cleaned_data.get('new_password'):
+                    from django.contrib.auth import update_session_auth_hash
+                    update_session_auth_hash(request, user_updated)
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('profile')
+            except forms.ValidationError as e:
+                messages.error(request, str(e))
+        else:
+            # Display form errors
+            for field, errors in form.errors.items():
+                if field != '__all__':
+                    messages.error(request, f'{field}: {errors[0]}')
+    else:
+        form = ProfileEditForm(instance=user)
+    
+    context = {
+        'form': form,
+        'user': user,
+    }
+    return render(request, 'auth/profile.html', context)

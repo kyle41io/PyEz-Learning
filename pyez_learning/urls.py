@@ -23,13 +23,15 @@ from users import views as user_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
 ] + i18n_patterns(
-    path('', user_views.home, name='home'),
     path('signin/', user_views.signin, name='signin'),
     path('signup/', user_views.signup, name='signup'),
     path('signout/', user_views.signout, name='signout'),
+    path('profile/', user_views.profile, name='profile'),
     path('create-teacher/', user_views.create_teacher, name='create_teacher'),
-    path('', include('curriculum.urls')),
+    path('', include('curriculum.urls')),  # Dashboard is here at /en/
     path('exams/', include('exams.urls')),
     path('users/', include('django.contrib.auth.urls')),
+    path('', user_views.home, name='home'),  # Moved to end as catch-all
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

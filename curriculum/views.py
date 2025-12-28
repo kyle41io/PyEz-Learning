@@ -42,6 +42,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils.translation import activate
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 
 # LANGUAGE SWITCHER VIEW
@@ -59,6 +60,7 @@ def set_language_view(request, language):
     return redirect('/')
 
 # 1. THE DASHBOARD VIEW (With Mock Data)
+@login_required(login_url='signin')
 def student_dashboard(request):
     # Mock Data for Active Exams
     active_exams = [

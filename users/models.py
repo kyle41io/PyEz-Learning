@@ -9,8 +9,6 @@ class User(AbstractUser):
     ]
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
-    is_teacher = models.BooleanField(default=False)
-    is_student = models.BooleanField(default=True)
     star_points = models.IntegerField(default=0)
     google_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
     profile_picture = models.URLField(blank=True, null=True)
@@ -20,8 +18,12 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
     
-    def save(self, *args, **kwargs):
-        # Auto-set is_teacher and is_student based on role
-        self.is_teacher = (self.role == 'teacher')
-        self.is_student = (self.role == 'student')
-        super().save(*args, **kwargs)
+    @property
+    def is_teacher(self):
+        """Check if user is a teacher by role"""
+        return self.role == 'teacher'
+    
+    @property
+    def is_student(self):
+        """Check if user is a student by role"""
+        return self.role == 'student'

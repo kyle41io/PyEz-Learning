@@ -117,3 +117,157 @@ msgstr "Language"
 
 msgid "Dark mode"
 msgstr "Dark mode"
+
+msgid "Footer title"
+msgstr "Fun, love and code"
+
+# Home page translations
+msgid "Python Learning Platform"
+msgstr "Python Learning Platform"
+
+msgid "Learn Python"
+msgstr "Learn Python"
+
+msgid "The Easy Way"
+msgstr "The Easy Way"
+
+msgid "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
+msgstr "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
+
+msgid "Get Started Free"
+msgstr "Get Started Free"
+
+msgid "Learn More"
+msgstr "Learn More"
+
+msgid "Interactive Lessons"
+msgstr "Interactive Lessons"
+
+msgid "Learn Python step by step with interactive lessons and real-time feedback."
+msgstr "Learn Python step by step with interactive lessons and real-time feedback."
+
+msgid "Track Progress"
+msgstr "Track Progress"
+
+msgid "Earn stars, climb leaderboards, and celebrate your coding milestones."
+msgstr "Earn stars, climb leaderboards, and celebrate your coding milestones."
+
+msgid "Expert Teachers"
+msgstr "Expert Teachers"
+
+msgid "Learn from experienced Python developers and educators."
+msgstr "Learn from experienced Python developers and educators."
+
+msgid "Sign In"
+msgstr "Sign In"
+
+msgid "Sign Up"
+msgstr "Sign Up"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Profile Picture"
+msgstr "Profile Picture"
+
+msgid "optional"
+msgstr "optional"
+
+msgid "Create Your Account"
+msgstr "Create Your Account"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Confirm Password"
+msgstr "Confirm Password"
+
+msgid "First Name"
+msgstr "First Name"
+
+msgid "Last Name"
+msgstr "Last Name"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Note:"
+msgstr "Note:"
+
+msgid "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
+msgstr "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
+
+msgid "Already have an account?"
+msgstr "Already have an account?"
+
+msgid "My Profile"
+msgstr "My Profile"
+
+msgid "Edit Profile"
+msgstr "Edit Profile"
+
+msgid "Bio"
+msgstr "Bio"
+
+msgid "Change Password"
+msgstr "Change Password"
+
+msgid "Current Password"
+msgstr "Current Password"
+
+msgid "New Password"
+msgstr "New Password"
+
+msgid "Confirm New Password"
+msgstr "Confirm New Password"
+
+msgid "Save Changes"
+msgstr "Save Changes"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Account Information"
+msgstr "Account Information"
+
+msgid "Email Address"
+msgstr "Email Address"
+
+msgid "Email cannot be changed"
+msgstr "Email cannot be changed"
+
+msgid "Username cannot be changed"
+msgstr "Username cannot be changed"
+
+msgid "Account Role"
+msgstr "Account Role"
+
+msgid "Contact an administrator to change your role"
+msgstr "Contact an administrator to change your role"
+
+msgid "Member Since"
+msgstr "Member Since"
+
+msgid "ago"
+msgstr "ago"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Account Status"
+msgstr "Account Status"
+
+msgid "Joined"
+msgstr "Joined"
+
+msgid "Enter a valid image URL. Changes will appear after saving."
+msgstr "Enter a valid image URL. Changes will appear after saving."
+
+msgid "Tell us about yourself - this will be visible on your profile"
+msgstr "Tell us about yourself - this will be visible on your profile"
+
+msgid "Required for security verification"
+msgstr "Required for security verification"
+
+msgid "Leave blank if you don't want to change your password"
+msgstr "Leave blank if you don't want to change your password"

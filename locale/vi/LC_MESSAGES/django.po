@@ -118,3 +118,157 @@ msgstr "Ngôn ngữ"
 
 msgid "Dark mode"
 msgstr "Chế độ tối"
+
+msgid "Footer title"
+msgstr "Fun, love and code"
+
+# Home page translations
+msgid "Python Learning Platform"
+msgstr "Nền Tảng Học Tập Python"
+
+msgid "Learn Python"
+msgstr "Học Python"
+
+msgid "The Easy Way"
+msgstr "Cách Dễ Dàng"
+
+msgid "Master Python programming with interactive lessons, real-world projects, and a supportive community. Start your coding journey today!"
+msgstr "Nắm vững lập trình Python với các bài học tương tác, dự án thực tế và cộng đồng hỗ trợ. Bắt đầu hành trình lập trình của bạn ngay hôm nay!"
+
+msgid "Get Started Free"
+msgstr "Bắt Đầu Miễn Phí"
+
+msgid "Learn More"
+msgstr "Tìm Hiểu Thêm"
+
+msgid "Interactive Lessons"
+msgstr "Bài Học Tương Tác"
+
+msgid "Learn Python step by step with interactive lessons and real-time feedback."
+msgstr "Học Python từng bước với các bài học tương tác và phản hồi thời gian thực."
+
+msgid "Track Progress"
+msgstr "Theo Dõi Tiến Độ"
+
+msgid "Earn stars, climb leaderboards, and celebrate your coding milestones."
+msgstr "Kiếm sao, leo lên bảng xếp hạng và ăn mừng các cột mốc lập trình của bạn."
+
+msgid "Expert Teachers"
+msgstr "Giáo Viên Chuyên Gia"
+
+msgid "Learn from experienced Python developers and educators."
+msgstr "Học từ các nhà phát triển Python và nhà giáo dục có kinh nghiệm."
+
+msgid "Sign In"
+msgstr "Đăng Nhập"
+
+msgid "Sign Up"
+msgstr "Đăng Ký"
+
+msgid "Username"
+msgstr "Tên Người Dùng"
+
+msgid "Profile Picture"
+msgstr "Ảnh Đại Diện"
+
+msgid "optional"
+msgstr "tùy chọn"
+
+msgid "Create Your Account"
+msgstr "Tạo Tài Khoản Của Bạn"
+
+msgid "Password"
+msgstr "Mật Khẩu"
+
+msgid "Confirm Password"
+msgstr "Xác Nhận Mật Khẩu"
+
+msgid "First Name"
+msgstr "Tên"
+
+msgid "Last Name"
+msgstr "Họ"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Note:"
+msgstr "Lưu Ý:"
+
+msgid "New accounts are created as Student role by default. Contact an administrator if you need Teacher access."
+msgstr "Các tài khoản mới được tạo với vai trò Sinh Viên theo mặc định. Liên hệ quản trị viên nếu bạn cần quyền truy cập Giáo viên."
+
+msgid "Already have an account?"
+msgstr "Đã có tài khoản rồi?"
+
+msgid "My Profile"
+msgstr "Hồ Sơ Của Tôi"
+
+msgid "Edit Profile"
+msgstr "Chỉnh Sửa Hồ Sơ"
+
+msgid "Bio"
+msgstr "Tiểu Sử"
+
+msgid "Change Password"
+msgstr "Đổi Mật Khẩu"
+
+msgid "Current Password"
+msgstr "Mật Khẩu Hiện Tại"
+
+msgid "New Password"
+msgstr "Mật Khẩu Mới"
+
+msgid "Confirm New Password"
+msgstr "Xác Nhận Mật Khẩu Mới"
+
+msgid "Save Changes"
+msgstr "Lưu Thay Đổi"
+
+msgid "Cancel"
+msgstr "Hủy Bỏ"
+
+msgid "Account Information"
+msgstr "Thông Tin Tài Khoản"
+
+msgid "Email Address"
+msgstr "Địa Chỉ Email"
+
+msgid "Email cannot be changed"
+msgstr "Email không thể được thay đổi"
+
+msgid "Username cannot be changed"
+msgstr "Tên người dùng không thể được thay đổi"
+
+msgid "Account Role"
+msgstr "Vai Trò Tài Khoản"
+
+msgid "Contact an administrator to change your role"
+msgstr "Liên hệ quản trị viên để thay đổi vai trò của bạn"
+
+msgid "Member Since"
+msgstr "Thành Viên Từ"
+
+msgid "ago"
+msgstr "trước"
+
+msgid "Active"
+msgstr "Hoạt Động"
+
+msgid "Account Status"
+msgstr "Trạng Thái Tài Khoản"
+
+msgid "Joined"
+msgstr "Đã Tham Gia"
+
+msgid "Enter a valid image URL. Changes will appear after saving."
+msgstr "Nhập một URL hình ảnh hợp lệ. Thay đổi sẽ được hiển thị sau khi lưu."
+
+msgid "Tell us about yourself - this will be visible on your profile"
+msgstr "Hãy cho chúng tôi biết về bạn - điều này sẽ được hiển thị trên hồ sơ của bạn"
+
+msgid "Required for security verification"
+msgstr "Bắt buộc để xác minh bảo mật"
+
+msgid "Leave blank if you don't want to change your password"
+msgstr "Bỏ trống nếu bạn không muốn thay đổi mật khẩu của mình"
