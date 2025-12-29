@@ -1,0 +1,108 @@
+{% load i18n %}
+{% load static %}
+<!-- 
+  User Profile Popup Component
+  A reusable, standalone component for displaying user information in a popup.
+  
+  Usage in any template:
+  1. Add class "user-profile-trigger" to profile picture/element
+  2. Add data attributes:
+     - data-user-name
+     - data-user-username
+     - data-user-email
+     - data-user-stars
+     - data-user-role
+     - data-user-profile-pic (optional)
+     - data-user-bio (optional)
+     - data-user-joined (optional)
+  3. Include this component once in the page
+  4. Load the JavaScript: <script src="{% static 'js/user_profile_popup.js' %}"></script>
+-->
+
+<div id="user-profile-popup"
+  class="user-profile-popup fixed bg-surface dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 w-80 p-6"
+  style="display: none; top: 0; left: 0;">
+  <div class="space-y-4">
+    <!-- Close Button -->
+    <button
+      class="close-popup absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+
+    <!-- Profile Section -->
+    <div class="flex flex-col items-center pt-2">
+      <!-- Profile Picture -->
+      <div id="popup-profile-pic"
+        class="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4">
+        A
+      </div>
+
+      <!-- Name -->
+      <h3 id="popup-name" class="text-xl font-bold text-gray-800 dark:text-white">User Name</h3>
+
+      <!-- Username and Role -->
+      <div class="flex items-center space-x-2 mt-1 flex-wrap justify-center gap-2">
+        <span id="popup-username" class="text-sm text-gray-500 dark:text-gray-400">@username</span>
+        <span id="popup-role"
+          class="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">Student</span>
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-2">{% trans "Contact" %}
+      </p>
+      <div class="flex items-center space-x-2">
+        <span class="text-gray-400">📧</span>
+        <a id="popup-email" href="mailto:" class="text-sm text-primary hover:underline break-all">email@example.com</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-3">{% trans "Stats" %}
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg text-center">
+          <p id="popup-stars" class="text-2xl font-bold text-primary">0</p>
+          <p class="text-xs text-gray-600 dark:text-gray-400">{% trans "Stars" %}</p>
+        </div>
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-center">
+          <p id="popup-progress" class="text-2xl font-bold text-blue-600">0%</p>
+          <p class="text-xs text-gray-600 dark:text-gray-400">{% trans "Progress" %}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bio -->
+    <div id="popup-bio-section" class="border-t border-gray-200 dark:border-gray-700 pt-4" style="display: none;">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-2">{% trans "Bio" %}</p>
+      <p id="popup-bio" class="text-sm text-gray-700 dark:text-gray-300"></p>
+    </div>
+
+    <!-- Joined -->
+    <div id="popup-joined-section" class="border-t border-gray-200 dark:border-gray-700 pt-4" style="display: none;">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-2">{% trans "Joined" %}
+      </p>
+      <p id="popup-joined" class="text-sm text-gray-700 dark:text-gray-300"></p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .user-profile-popup {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.2s ease-in-out;
+    pointer-events: none;
+  }
+
+  .user-profile-popup.show {
+    display: block !important;
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+</style>

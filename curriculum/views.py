@@ -103,22 +103,11 @@ def student_dashboard(request):
     # Get real leaderboard from database
     from users.models import User
     
-    # Get all students ordered by star points
-    leaderboard_students = User.objects.filter(role='student').order_by('-star_points')[:5]
+    # Get all students ordered by star points (descending) then by first_name (ascending for alphabetical order)
+    leaderboard_students = User.objects.filter(role='student').order_by('-star_points', 'first_name')[:5]
     
-    # Check if all have 0 stars
-    if leaderboard_students.exists() and all(s.star_points == 0 for s in leaderboard_students):
-        # If all have 0 stars, get random 5 students instead
-        leaderboard_students = User.objects.filter(role='student').order_by('?')[:5]
-    
-    leaderboard = [
-        {
-            'username': student.username,
-            'star_points': student.star_points,
-            'first_name': student.first_name
-        }
-        for student in leaderboard_students
-    ]
+    # If no students, create an empty list
+    leaderboard = list(leaderboard_students) if leaderboard_students.exists() else []
 
     context = {
         # Real User Stats

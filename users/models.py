@@ -18,10 +18,16 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
     
+    def save(self, *args, **kwargs):
+        """Auto-set role to admin if user is superuser or staff"""
+        if self.is_superuser or self.is_staff:
+            self.role = 'admin'
+        super().save(*args, **kwargs)
+    
     @property
     def is_teacher(self):
         """Check if user is a teacher by role"""
-        return self.role == 'teacher'
+        return self.role == 'teacher' or self.role == 'admin'
     
     @property
     def is_student(self):

@@ -281,3 +281,6 @@ msgstr "Vui vẻ, yêu thương và mã"
 
 msgid "Student User"
 msgstr "Người dùng học sinh"
+
+msgid "Teacher management"
+msgstr "Quản lý giáo viên"

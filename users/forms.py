@@ -99,29 +99,37 @@ class SignInForm(AuthenticationForm):
 
 class CreateTeacherForm(forms.ModelForm):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary',
+        'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
         'placeholder': 'Enter password'
     }))
     password2 = forms.CharField(widget=forms.PasswordInput(attrs={
-        'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary',
+        'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
         'placeholder': 'Confirm password'
     }))
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name')
+        fields = ('email', 'username', 'first_name', 'last_name', 'profile_picture')
         widgets = {
             'email': forms.EmailInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
                 'placeholder': 'Teacher Email'
             }),
+            'username': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
+                'placeholder': 'Username (optional, auto-generated from email if empty)'
+            }),
             'first_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
                 'placeholder': 'First Name'
             }),
             'last_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
                 'placeholder': 'Last Name'
+            }),
+            'profile_picture': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
+                'accept': 'image/*'
             }),
         }
 
@@ -131,11 +139,20 @@ class CreateTeacherForm(forms.ModelForm):
         password2 = cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError('Passwords do not match')
+        
+        # Validate username
+        username = cleaned_data.get('username')
+        if username:
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError('Username already exists')
+        
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.username = user.email.split('@')[0]
+        # Only auto-generate username if not provided
+        if not user.username:
+            user.username = user.email.split('@')[0]
         user.role = 'teacher'
         user.set_password(self.cleaned_data['password1'])
         if commit:
@@ -214,7 +231,10 @@ class ProfileEditForm(forms.ModelForm):
         # Update basic info
         user_instance.first_name = self.cleaned_data.get('first_name')
         user_instance.last_name = self.cleaned_data.get('last_name')
-        user_instance.profile_picture = self.cleaned_data.get('profile_picture')
+        
+        if 'profile_picture' in self.files:
+            user_instance.profile_picture = self.files.get('profile_picture')
+        
         user_instance.bio = self.cleaned_data.get('bio')
 
         # Update password if provided

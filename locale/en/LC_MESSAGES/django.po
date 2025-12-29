@@ -281,3 +281,6 @@ msgstr "Fun, love and code"
 
 msgid "Student User"
 msgstr "Student User"
+
+msgid "Teacher management"
+msgstr "Teacher management"

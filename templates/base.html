@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PyEz Learning</title>
-
+  <link rel="icon" type="image/svg+xml" href="{% static '../media/PyEz-favicon.png' %}">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -51,13 +51,28 @@
 
 <body class="min-h-screen flex flex-col antialiased">
 
-  <nav class="bg-surface shadow-md sticky top-0 z-50 h-16 border-b border-gray-200 dark:border-gray-700">
+  <nav class="bg-surface shadow-md sticky top-0 z-50 h-14 border-b border-gray-200 dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
 
       <div class="flex items-center cursor-pointer" onclick="window.location.href='/'">
         <div
           class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white text-2xl shadow-lg mr-2 transform hover:rotate-12 transition">
-          🐍</div>
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+            <!-- We use 'stroke-current' and 'text-brand' so the color changes with your theme! -->
+            <path d="M50 35C50 26.7157 56.7157 20 65 20C73.2843 20 80 26.7157 80 35V65C80 73.2843 73.2843 80 65 80H35C26.7157 80 20 73.2843 20 65C20 56.7157 26.7157 50 35 50H65" 
+                  class="stroke-current text-brand" 
+                  stroke-width="12" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"/>
+            <circle cx="65" cy="35" r="4" class="fill-white"/>
+            <!-- Tongue (hidden in logo, shown on hover if you want, or kept static) -->
+            <path d="M86 35H92L96 32M92 35L96 38" 
+                  class="stroke-red-500 dark:stroke-red-300" 
+                  stroke-width="4" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"/>
+          </svg>
+        </div>
         <span class="font-extrabold text-2xl text-primary tracking-tighter">PyEz</span>
       </div>
 
@@ -74,6 +89,10 @@
         <a href="#"
           class="text-primary font-bold border-2 border-primary px-3 py-1 rounded-lg hover:bg-primary hover:text-white transition">{%trans "Teaching Content" %}</a>
         {% endif %}
+        {% if user.role == 'admin' %}
+        <a href="/create-teacher"
+          class="text-primary font-bold border-2 border-primary px-3 py-1 rounded-lg hover:bg-primary hover:text-white transition">{%trans "Teacher management" %}</a>
+        {% endif %}
       </div>
 
       <div class="flex items-center space-x-3">
@@ -82,10 +101,10 @@
             class="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
             {% if user.profile_picture %}
             <img src="{{ user.profile_picture.url }}" alt="{{ user.first_name }}"
-              class="w-24 h-24 rounded-full object-cover border-4 border-primary shadow-lg">
+              class="w-10 h-10 rounded-full object-cover border-2 border-primary shadow-lg">
             {% else %}
             <div
-              class="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center text-4xl font-bold shadow-lg">
+              class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold shadow-lg">
               {{ user.first_name|first|upper }}
             </div>
             {% endif %}
@@ -191,8 +210,7 @@
         <a href="#" class="hover:text-primary">{% trans "Python Tips" %}</a>
       </div>
       <p class="text-gray-400 text-sm italic">{% trans "First, solve the problem. Then, write the code." %}</p>
-      <p class="text-gray-300 dark:text-gray-600 text-xs mt-4 uppercase tracking-widest">&copy; 2025 {% trans "PyEz
-        Learning System" %}</p>
+      <p class="text-gray-300 dark:text-gray-600 text-xs mt-4 uppercase tracking-widest">&copy; 2025 {% trans "PyEz Learning System" %}</p>
     </div>
   </footer>
 
