@@ -39,6 +39,67 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
+    {% if is_teacher %}
+    <!-- Teacher: Average Progress Card -->
+    <div
+        class="bg-surface p-6 rounded-2xl shadow-lg border-t-4 border-primary relative overflow-hidden transform hover:-translate-y-1 transition duration-300">
+        <div class="flex items-center space-x-2 mb-6">
+            <h2 class="text-xl font-bold">{% trans "Average Student Progress" %}</h2>
+        </div>
+
+        <div class="flex flex-col items-center justify-center py-4">
+            <div class="relative w-32 h-32 rounded-full flex items-center justify-center mb-4"
+                style="background: conic-gradient(var(--primary-color) {{ avg_progress }}%, #e5e7eb 0);">
+                <div class="bg-surface w-24 h-24 rounded-full flex items-center justify-center">
+                    <span class="text-2xl font-bold text-primary">{{ avg_progress }}%</span>
+                </div>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 text-center mt-6">
+                <span class="font-bold text-gray-800 dark:text-white">{{ students_finished }}</span>
+                {% trans "out of" %} <span class="font-bold text-gray-800 dark:text-white">{{ total_students }}</span>
+                {% trans "students completed the curriculum." %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Teacher: My Exams Card -->
+    <div
+        class="bg-surface p-6 rounded-2xl shadow-lg border-t-4 border-primary relative overflow-hidden transform hover:-translate-y-1 transition duration-300">
+        <div class="absolute top-0 right-0 p-4 opacity-10">
+            <svg class="w-32 h-32 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                <path fill-rule="evenodd"
+                    d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                    clip-rule="evenodd"></path>
+            </svg>
+        </div>
+
+        <div class="flex items-center space-x-2 mb-2">
+            <span class="text-2xl">📝</span>
+            <h2 class="text-xl font-bold">{% trans "My Exams" %}</h2>
+        </div>
+
+        <div class="space-y-3 py-4">
+            {% for exam in my_exams|slice:":3" %}
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700">
+                <div>
+                    <p class="font-bold text-sm">{{ exam.title }}</p>
+                    <p class="text-xs text-gray-500">{{ exam.submissions }} {% trans "submissions" %}</p>
+                </div>
+                <span
+                    class="px-2 py-1 text-xs rounded-full {% if exam.active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {% if exam.active %}{% trans "Active" %}{% else %}{% trans "Closed" %}{% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="mt-4 text-center">
+            <a href="#" class="text-sm text-purple-500 font-bold hover:underline">{% trans "See All Exams" %}</a>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Student: My Progress Card -->
     <div
         class="bg-surface p-6 rounded-2xl shadow-lg border-t-4 border-primary relative overflow-hidden transform hover:-translate-y-1 transition duration-300">
         <div class="flex items-center space-x-2 mb-6">
@@ -53,8 +114,10 @@
                 </div>
             </div>
             <p class="text-gray-600 dark:text-gray-400 text-center">
-                {% trans "You have completed" %} <span class="font-bold text-gray-800 dark:text-white">{{ completed_lessons }}</span>
-                {% trans "out of" %} <span class="font-bold text-gray-800 dark:text-white">{{ total_lessons }}</span> {% trans "lessons." %}
+                {% trans "You have completed" %} <span class="font-bold text-gray-800 dark:text-white">{{
+                    completed_lessons }}</span>
+                {% trans "out of" %} <span class="font-bold text-gray-800 dark:text-white">{{ total_lessons }}</span> {%
+                trans "lessons." %}
             </p>
             <div class="mt-6">
                 <button
@@ -65,6 +128,7 @@
         </div>
     </div>
 
+    <!-- Student: My Stars Card -->
     <div
         class="bg-surface p-6 rounded-2xl shadow-lg border-t-4 border-primary relative overflow-hidden transform hover:-translate-y-1 transition duration-300">
         <div class="absolute top-0 right-0 p-4 opacity-10">
@@ -84,11 +148,14 @@
             <span class="text-gray-500 font-bold mt-2">{% trans "Total Stars Earned" %}</span>
 
             <div class="mt-6 flex space-x-2">
-                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">🏆 {% trans "Top 10%" %}</span>
-                <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">{% trans "Active Learner" %}</span>
+                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">🏆 {% trans "Top
+                    10%" %}</span>
+                <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">{% trans "Active
+                    Learner" %}</span>
             </div>
         </div>
     </div>
+    {% endif %}
 
     <div
         class="bg-surface p-6 rounded-2xl shadow-lg border-t-4 border-primary relative overflow-hidden transform hover:-translate-y-1 transition duration-300">
@@ -103,11 +170,11 @@
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center justify-center w-8 h-8">
                         {% if forloop.counter == 1 %}
-                        <canvas id="medal-1" width="32" height="32" class="gold-medal"></canvas>
+                        <i class="fa-solid fa-medal text-yellow-400 text-2xl"></i>
                         {% elif forloop.counter == 2 %}
-                        <canvas id="medal-2" width="32" height="32" class="silver-medal"></canvas>
+                        <i class="fa-solid fa-medal text-gray-400 text-2xl"></i>
                         {% elif forloop.counter == 3 %}
-                        <canvas id="medal-3" width="32" height="32" class="bronze-medal"></canvas>
+                        <i class="fa-solid fa-medal text-orange-400 text-2xl"></i>
                         {% else %}
                         <div class="font-bold text-gray-400 text-sm">#{{ forloop.counter }}</div>
                         {% endif %}
@@ -118,7 +185,7 @@
                         data-user-stars="{{ student.star_points }}" data-user-role="{{ student.get_role_display }}"
                         data-user-bio="{{ student.bio }}" data-user-joined="{{ student.created_at|date:'F j, Y' }}"
                         data-user-profile-pic="{% if student.profile_picture %}{{ student.profile_picture.url }}{% endif %}"
-                        data-user-progress="45%">
+                        data-user-progress="{{ student.progress_percent }}">
                         {% if student.profile_picture %}
                         <img src="{{ student.profile_picture.url }}" alt="{{ student.first_name }}"
                             class="w-10 h-10 rounded-full object-cover border-2 border-primary shadow-lg">
@@ -146,7 +213,7 @@
 
         <div class="mt-4 text-center">
             {% if user.is_teacher %}
-            <a href="#" class="text-sm text-purple-500 font-bold hover:underline">{% trans "View All Students" %}</a>
+            <a href="/manage-students" class="text-sm text-purple-500 font-bold hover:underline">{% trans "View All Students" %}</a>
             {% endif %}
         </div>
     </div>

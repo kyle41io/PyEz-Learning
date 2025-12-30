@@ -165,7 +165,7 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email', 'first_name', 'last_name', 'password1', 'password2']
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'first_name', 'last_name', 'password1*', 'password2*']
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -174,6 +174,7 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
+            'prompt': 'select_account',  # Force account selection popup
         }
     }
 }
@@ -183,3 +184,10 @@ SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
 
 # Allow users to edit profile after OAuth login
 SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+# Default file size
+DEFAULT_CHARSET = 'utf-8'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

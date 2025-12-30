@@ -62,7 +62,7 @@ def set_language_view(request, language):
 # 1. THE DASHBOARD VIEW (With Real Data from Database)
 @login_required(login_url='signin')
 def student_dashboard(request):
-    from django.db.models import Count
+    from django.db.models import Count, Avg, Q
     from django.utils import timezone
     from datetime import timedelta
     
@@ -87,39 +87,70 @@ def student_dashboard(request):
         }
     ]
 
-    # Get real user stats
-    user_stars = user.star_points
-    
-    # Get real progress from database
     from .models import Lesson, Progress
-    total_lessons = Lesson.objects.count()
-    completed_lessons = Progress.objects.filter(student=user, is_completed=True).count()
-    
-    progress_percent = 0
-    if total_lessons > 0:
-        progress_percent = int((completed_lessons / total_lessons) * 100)
-    
-    
-    # Get real leaderboard from database
     from users.models import User
     
-    # Get all students ordered by star points (descending) then by first_name (ascending for alphabetical order)
+    # Get real leaderboard from database
     leaderboard_students = User.objects.filter(role='student').order_by('-star_points', 'first_name')[:5]
-    
-    # If no students, create an empty list
     leaderboard = list(leaderboard_students) if leaderboard_students.exists() else []
-
-    context = {
-        # Real User Stats
-        'user_stars': user_stars,
-        'progress_percent': progress_percent,
-        'completed_lessons': completed_lessons,
-        'total_lessons': total_lessons,
+    
+    # For Teachers: Different data
+    if user.is_teacher:
+        total_lessons = Lesson.objects.count()
         
-        # Lists
-        'active_exams': active_exams,
-        'leaderboard': leaderboard,
-    }
+        # Get all students
+        students = User.objects.filter(role='student')
+        total_students = students.count()
+        
+        # Calculate average progress
+        student_progress = []
+        students_finished = 0
+        
+        for student in students:
+            completed = Progress.objects.filter(student=student, is_completed=True).count()
+            if total_lessons > 0:
+                percent = int((completed / total_lessons) * 100)
+                student_progress.append(percent)
+                if percent == 100:
+                    students_finished += 1
+        
+        avg_progress = int(sum(student_progress) / len(student_progress)) if student_progress else 0
+        
+        # Mock teacher exams data
+        my_exams = [
+            {'title': 'Python Basics Quiz', 'active': True, 'submissions': 15},
+            {'title': 'Algorithm Test', 'active': True, 'submissions': 8},
+            {'title': 'Final Exam', 'active': False, 'submissions': 20},
+        ]
+        
+        context = {
+            'is_teacher': True,
+            'avg_progress': avg_progress,
+            'students_finished': students_finished,
+            'total_students': total_students,
+            'my_exams': my_exams,
+            'active_exams': active_exams,
+            'leaderboard': leaderboard,
+        }
+    else:
+        # For Students: Original data
+        user_stars = user.star_points
+        total_lessons = Lesson.objects.count()
+        completed_lessons = Progress.objects.filter(student=user, is_completed=True).count()
+        
+        progress_percent = 0
+        if total_lessons > 0:
+            progress_percent = int((completed_lessons / total_lessons) * 100)
+
+        context = {
+            'is_teacher': False,
+            'user_stars': user_stars,
+            'progress_percent': progress_percent,
+            'completed_lessons': completed_lessons,
+            'total_lessons': total_lessons,
+            'active_exams': active_exams,
+            'leaderboard': leaderboard,
+        }
     
     return render(request, 'classroom/dashboard.html', context)
 
@@ -127,3 +158,97 @@ def student_dashboard(request):
 def lesson_detail(request, lesson_id):
     # We will build this later. For now, it just renders a simple text.
     return render(request, 'base.html')
+
+# 3. MANAGE STUDENTS VIEW (For Teachers)
+@login_required(login_url='signin')
+def manage_students(request):
+    from django.db.models import Q
+    from users.models import User
+    from .models import Lesson, Progress
+    
+    # Check if user is teacher
+    if not request.user.is_teacher:
+        return redirect('dashboard')
+    
+    # Get filter parameters
+    name_filter = request.GET.get('name', '')
+    progress_filter = request.GET.get('progress', '')  # 'high' or 'low'
+    stars_filter = request.GET.get('stars', '')  # 'high' or 'low'
+    
+    # Get all students
+    students = User.objects.filter(role='student')
+    
+    # Apply name filter
+    if name_filter:
+        students = students.filter(
+            Q(first_name__icontains=name_filter) | 
+            Q(last_name__icontains=name_filter) |
+            Q(username__icontains=name_filter)
+        )
+    
+    # Calculate progress for each student
+    total_lessons = Lesson.objects.count()
+    students_data = []
+    
+    for student in students:
+        completed = Progress.objects.filter(student=student, is_completed=True).count()
+        progress_percent = int((completed / total_lessons) * 100) if total_lessons > 0 else 0
+        
+        students_data.append({
+            'id': student.id,
+            'first_name': student.first_name,
+            'last_name': student.last_name,
+            'username': student.username,
+            'email': student.email,
+            'star_points': student.star_points,
+            'progress_percent': progress_percent,
+            'is_active': student.is_active,
+            'profile_picture': student.profile_picture,
+        })
+    
+    # Apply progress filter
+    if progress_filter == 'high':
+        students_data = [s for s in students_data if s['progress_percent'] >= 60]
+    elif progress_filter == 'low':
+        students_data = [s for s in students_data if s['progress_percent'] < 60]
+    
+    # Apply stars filter
+    if stars_filter == 'high':
+        students_data = [s for s in students_data if s['star_points'] >= 30]
+    elif stars_filter == 'low':
+        students_data = [s for s in students_data if s['star_points'] < 30]
+    
+    context = {
+        'students': students_data,
+        'name_filter': name_filter,
+        'progress_filter': progress_filter,
+        'stars_filter': stars_filter,
+        'total_students': len(students_data),
+    }
+    
+    return render(request, 'classroom/manage_students.html', context)
+
+# 4. TOGGLE STUDENT STATUS (For Teachers)
+@login_required(login_url='signin')
+def toggle_student_status(request, student_id):
+    from django.http import JsonResponse
+    from users.models import User
+    import json
+    
+    # Check if user is teacher
+    if not request.user.is_teacher:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    if request.method == 'POST':
+        try:
+            student = User.objects.get(id=student_id, role='student')
+            data = json.loads(request.body)
+            student.is_active = data.get('is_active', True)
+            student.save()
+            return JsonResponse({'success': True})
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Student not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
