@@ -9,6 +9,7 @@
   <title>PyEz Learning</title>
   <link rel="icon" type="image/svg+xml" href="{% static '../media/PyEz-favicon.png' %}">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <script>
@@ -75,27 +76,21 @@
       <!-- Authenticated User Navbar -->
       <div class="hidden md:flex space-x-6 items-center">
         <a href="{% url 'dashboard' %}" data-page="dashboard"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{%
-          trans "Dashboard" %}</a>
-        <a href="#" data-page="curriculum"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{%
-          trans "Curriculum" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Dashboard" %}</a>
+        <a href="{% url 'curriculum' %}" data-page="curriculum"
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Curriculum" %}</a>
         {% if user.is_teacher %}
         <a href="{% url 'manage_students' %}" data-page="manage_students"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{%
-          trans "Manage Students" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Manage Students" %}</a>
         <a href="#" data-page="teaching"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{%
-          trans "Teaching Content" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Teaching Content" %}</a>
         {% else %}
         <a href="#" data-page="progress"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{%
-          trans "Progress" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Progress" %}</a>
         {% endif %}
         {% if user.role == 'admin' %}
         <a href="/create-teacher" data-page="create_teacher"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{%
-          trans "Teacher management" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Teacher management" %}</a>
         {% endif %}
       </div>
 
@@ -179,8 +174,7 @@
 
             <!-- Logout -->
             <a href="{% url 'signout' %}"
-              class="block px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition font-bold">{%trans
-              "Sign Out" %}</a>
+              class="block px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition font-bold">{% trans "Sign Out" %}</a>
           </div>
         </div>
       </div>
@@ -215,8 +209,7 @@
         <a href="#" class="hover:text-primary">{% trans "Python Tips" %}</a>
       </div>
       <p class="text-gray-400 text-sm italic">{% trans "First, solve the problem. Then, write the code." %}</p>
-      <p class="text-gray-300 dark:text-gray-600 text-xs mt-4 uppercase tracking-widest">&copy; 2025 {% trans "PyEz
-        Learning System" %}</p>
+      <p class="text-gray-300 dark:text-gray-600 text-xs mt-4 uppercase tracking-widest">&copy; 2025 {% trans "PyEz Learning System" %}</p>
     </div>
   </footer>
 

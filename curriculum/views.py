@@ -252,3 +252,118 @@ def toggle_student_status(request, student_id):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
+# 5. CURRICULUM VIEW (Display all lessons)
+@login_required(login_url='signin')
+def curriculum_view(request):
+    from .models import Lesson
+    
+    # Get all lessons ordered by order field
+    lessons = Lesson.objects.all().order_by('order')
+    
+    context = {
+        'lessons': lessons,
+    }
+    
+    return render(request, 'classroom/curriculum.html', context)
+
+# 6. LESSON DETAIL VIEW (Display specific category of a lesson)
+@login_required(login_url='signin')
+def lesson_detail_category(request, lesson_id, category):
+    from .models import Lesson
+    from django.shortcuts import get_object_or_404
+    
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    
+    # Define all possible categories in order
+    category_order = ['pdf_file', 'video_mp4', 'quiz_data', 'code_test_data', 'game_html_name']
+    category_names = {
+        'pdf_file': 'Document',
+        'video_mp4': 'Video Lecture',
+        'quiz_data': 'Quiz Test',
+        'code_test_data': 'Coding Challenge',
+        'game_html_name': 'Interactive Game'
+    }
+    
+    # Get all lessons ordered
+    all_lessons = list(Lesson.objects.all().order_by('order'))
+    
+    # Find current lesson index
+    current_lesson_index = next((i for i, l in enumerate(all_lessons) if l.id == lesson.id), None)
+    
+    # Get available categories for current lesson
+    current_categories = []
+    for cat in category_order:
+        value = getattr(lesson, cat, None)
+        if cat in ['quiz_data', 'code_test_data']:
+            if value and len(value) > 0:
+                current_categories.append(cat)
+        elif value:
+            current_categories.append(cat)
+    
+    # Find current category index in current lesson
+    try:
+        current_category_index = current_categories.index(category)
+    except ValueError:
+        current_category_index = 0
+        category = current_categories[0] if current_categories else None
+    
+    # Calculate previous category
+    prev_lesson = None
+    prev_category = None
+    if current_category_index > 0:
+        # Previous category in same lesson
+        prev_lesson = lesson
+        prev_category = current_categories[current_category_index - 1]
+    elif current_lesson_index > 0:
+        # Last category of previous lesson
+        prev_lesson_obj = all_lessons[current_lesson_index - 1]
+        prev_lesson_categories = []
+        for cat in category_order:
+            value = getattr(prev_lesson_obj, cat, None)
+            if cat in ['quiz_data', 'code_test_data']:
+                if value and len(value) > 0:
+                    prev_lesson_categories.append(cat)
+            elif value:
+                prev_lesson_categories.append(cat)
+        if prev_lesson_categories:
+            prev_lesson = prev_lesson_obj
+            prev_category = prev_lesson_categories[-1]
+    
+    # Calculate next category
+    next_lesson = None
+    next_category = None
+    if current_category_index < len(current_categories) - 1:
+        # Next category in same lesson
+        next_lesson = lesson
+        next_category = current_categories[current_category_index + 1]
+    elif current_lesson_index < len(all_lessons) - 1:
+        # First category of next lesson
+        next_lesson_obj = all_lessons[current_lesson_index + 1]
+        next_lesson_categories = []
+        for cat in category_order:
+            value = getattr(next_lesson_obj, cat, None)
+            if cat in ['quiz_data', 'code_test_data']:
+                if value and len(value) > 0:
+                    next_lesson_categories.append(cat)
+            elif value:
+                next_lesson_categories.append(cat)
+        if next_lesson_categories:
+            next_lesson = next_lesson_obj
+            next_category = next_lesson_categories[0]
+    
+    # Get category content
+    category_content = getattr(lesson, category, None)
+    
+    context = {
+        'lesson': lesson,
+        'category': category,
+        'category_name': category_names.get(category, category),
+        'category_content': category_content,
+        'prev_lesson': prev_lesson,
+        'prev_category': prev_category,
+        'next_lesson': next_lesson,
+        'next_category': next_category,
+    }
+    
+    return render(request, 'classroom/lesson_detail.html', context)

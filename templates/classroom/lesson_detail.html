@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  .pdf-page-canvas {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+
+  #pdf-container {
+    max-height: 800px;
+    overflow-y: auto;
+  }
+</style>
+
+<div class="min-h-screen flex flex-col">
+  <!-- Header with Lesson Title -->
+  <div class="mb-6">
+    <a href="{% url 'curriculum' %}" class="inline-flex items-center text-primary hover:text-primary/80 font-bold mb-3">
+      <i class="fa-solid fa-arrow-left mr-2"></i>
+      {% trans "Back to Curriculum" %}
+    </a>
+    <h2 class="text-2xl font-extrabold text-gray-800 dark:text-white">
+      {% trans "Lesson" %} {{ lesson.order }}: {{ lesson.title }}
+    </h2>
+  </div>
+
+  <div class="flex-grow flex flex-col">
+    <!-- Navigation Bar -->
+    <div class="bg-surface rounded-t-2xl shadow-lg border-b border-gray-200 dark:border-gray-700 px-8 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Previous Button -->
+        <div class="w-32">
+          {% if prev_lesson and prev_category %}
+          <a href="{% url 'lesson_detail_category' prev_lesson.id prev_category %}"
+            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition font-bold">
+            <i class="fa-solid fa-chevron-left"></i>
+            {% trans "Previous" %}
+          </a>
+          {% else %}
+          <button disabled
+            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg cursor-not-allowed font-bold opacity-50">
+            <i class="fa-solid fa-chevron-left"></i>
+            {% trans "Previous" %}
+          </button>
+          {% endif %}
+        </div>
+
+        <!-- Category Name (Center) -->
+        <div class="flex-1 text-center">
+          <h3 class="text-xl font-bold text-primary">{{ category_name }}</h3>
+        </div>
+
+        <!-- Next Button -->
+        <div class="w-32 flex justify-end">
+          {% if next_lesson and next_category %}
+          <a href="{% url 'lesson_detail_category' next_lesson.id next_category %}"
+            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition font-bold">
+            {% trans "Next" %}
+            <i class="fa-solid fa-chevron-right ml-2"></i>
+          </a>
+          {% else %}
+          <button disabled
+            class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg cursor-not-allowed font-bold opacity-50">
+            {% trans "Next" %}
+            <i class="fa-solid fa-chevron-right ml-2"></i>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Display Area -->
+    <div class="bg-surface rounded-b-2xl shadow-lg flex-grow p-8">
+
+      {% if category == 'pdf_file' %}
+      <!-- PDF Document Viewer -->
+      <div class="h-full flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-file-pdf text-4xl text-blue-500"></i>
+            <div>
+              <h4 class="text-lg font-bold text-gray-800 dark:text-white">{% trans "Document" %}</h4>
+              <p class="text-sm text-gray-500">{% trans "Lesson Material" %}</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <a href="{{ category_content.url }}" target="_blank" download
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-bold">
+              <i class="fa-solid fa-download mr-2"></i>
+              {% trans "Download PDF" %}
+            </a>
+          </div>
+        </div>
+        <div id="pdf-container"
+          class="flex-grow border-2 border-gray-200 dark:border-gray-700 rounded-xl overflow-auto bg-gray-100 dark:bg-gray-800 p-4">
+          <div id="pdf-loading" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p class="text-gray-600 dark:text-gray-400">{% trans "Loading PDF..." %}</p>
+          </div>
+        </div>
+      </div>
+
+      {% elif category == 'video_mp4' %}
+      <!-- Video Player -->
+      <div class="h-full flex flex-col">
+        <div class="flex items-center space-x-3 mb-4">
+          <i class="fa-solid fa-video text-4xl text-red-500"></i>
+          <div>
+            <h4 class="text-lg font-bold text-gray-800 dark:text-white">{% trans "Video Lecture" %}</h4>
+            <p class="text-sm text-gray-500">{% trans "Watch and learn" %}</p>
+          </div>
+        </div>
+        <div class="flex-grow flex items-center justify-center bg-black rounded-xl overflow-hidden">
+          <video controls class="w-full h-full" style="max-height: 600px;">
+            <source src="{{ category_content.url }}" type="video/mp4">
+            {% trans "Your browser does not support the video tag." %}
+          </video>
+        </div>
+      </div>
+
+      {% elif category == 'quiz_data' %}
+      <!-- Quiz Test -->
+      <div id="quiz-intro" class="h-full flex flex-col items-center justify-center">
+        <div class="text-center max-w-2xl">
+          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-clipboard-question text-4xl text-green-600"></i>
+          </div>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Quiz Test" %}</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
+            {% trans "Test your understanding of this lesson with" %} <span class="font-bold text-primary">{{
+              category_content|length }}</span> {% trans "questions" %}.
+          </p>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div>
+                <p class="text-sm text-gray-500 mb-1">{% trans "Questions" %}</p>
+                <p class="text-2xl font-bold text-primary">{{ category_content|length }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500 mb-1">{% trans "Time Limit" %}</p>
+                <p class="text-2xl font-bold text-primary">{% trans "No Limit" %}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500 mb-1">{% trans "Points" %}</p>
+                <p class="text-2xl font-bold text-primary">{{ lesson.points_value }} ⭐</p>
+              </div>
+            </div>
+          </div>
+          <button onclick="startQuiz()"
+            class="px-8 py-4 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-bold text-lg shadow-lg">
+            <i class="fa-solid fa-play mr-2"></i>
+            {% trans "Start Quiz" %}
+          </button>
+        </div>
+      </div>
+
+      <div id="quiz-content" class="hidden h-full">
+        <div class="text-center py-12">
+          <p class="text-xl text-gray-600 dark:text-gray-400">{% trans "Quiz functionality will be implemented soon..."
+            %}</p>
+          <pre
+            class="text-left mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto max-h-96">{{ category_content|safe }}</pre>
+        </div>
+      </div>
+
+      {% elif category == 'code_test_data' %}
+      <!-- Coding Test -->
+      <div id="code-intro" class="h-full flex flex-col items-center justify-center">
+        <div class="text-center max-w-2xl">
+          <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-code text-4xl text-purple-600"></i>
+          </div>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Coding Challenge" %}</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
+            {% trans "Practice your coding skills with" %} <span class="font-bold text-primary">{{
+              category_content|length }}</span> {% trans "programming problems" %}.
+          </p>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div>
+                <p class="text-sm text-gray-500 mb-1">{% trans "Problems" %}</p>
+                <p class="text-2xl font-bold text-primary">{{ category_content|length }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500 mb-1">{% trans "Difficulty" %}</p>
+                <p class="text-2xl font-bold text-primary">{% trans "Mixed" %}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500 mb-1">{% trans "Points" %}</p>
+                <p class="text-2xl font-bold text-primary">{{ lesson.points_value }} ⭐</p>
+              </div>
+            </div>
+          </div>
+          <button onclick="startCoding()"
+            class="px-8 py-4 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition font-bold text-lg shadow-lg">
+            <i class="fa-solid fa-play mr-2"></i>
+            {% trans "Start Coding" %}
+          </button>
+        </div>
+      </div>
+
+      <div id="code-content" class="hidden h-full">
+        <div class="text-center py-12">
+          <p class="text-xl text-gray-600 dark:text-gray-400">{% trans "Coding challenge functionality will be
+            implemented soon..." %}</p>
+          <pre
+            class="text-left mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto max-h-96">{{ category_content|safe }}</pre>
+        </div>
+      </div>
+
+      {% elif category == 'game_html_name' %}
+      <!-- Interactive Game -->
+      <div class="h-full flex flex-col items-center justify-center">
+        <div class="text-center max-w-2xl">
+          <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-gamepad text-4xl text-yellow-600"></i>
+          </div>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Interactive Game" %}</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
+            {% trans "Game embedding will be implemented soon..." %}
+          </p>
+          <p class="text-sm text-gray-500">Game file: <span class="font-mono">{{ category_content }}</span></p>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Fallback for unknown category -->
+      <div class="h-full flex items-center justify-center">
+        <div class="text-center text-gray-500">
+          <i class="fa-solid fa-circle-exclamation text-5xl mb-4"></i>
+          <p class="text-xl font-bold">{% trans "Content not available" %}</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function startQuiz() {
+    document.getElementById('quiz-intro').classList.add('hidden');
+    document.getElementById('quiz-content').classList.remove('hidden');
+  }
+
+  function startCoding() {
+    document.getElementById('code-intro').classList.add('hidden');
+    document.getElementById('code-content').classList.remove('hidden');
+  }
+
+  // PDF.js viewer - Render all pages
+  {% if category == 'pdf_file' %}
+  const url = "{{ category_content.url }}";
+  let pdfDoc = null;
+  const scale = 1.5;
+  const container = document.getElementById('pdf-container');
+  const loadingDiv = document.getElementById('pdf-loading');
+
+  // Load PDF.js from CDN
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  script.onload = function () {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // Load the PDF
+    pdfjsLib.getDocument(url).promise.then(function (pdf) {
+      pdfDoc = pdf;
+      const numPages = pdf.numPages;
+
+      // Remove loading indicator
+      loadingDiv.remove();
+
+      // Render all pages
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        renderPage(pageNum);
+      }
+    }).catch(function (error) {
+      console.error('Error loading PDF:', error);
+      container.innerHTML = '<div class="text-center py-12"><p class="text-red-500 font-bold">Error loading PDF. Please try downloading it instead.</p></div>';
+    });
+  };
+  document.head.appendChild(script);
+
+  function renderPage(num) {
+    pdfDoc.getPage(num).then(function (page) {
+      const viewport = page.getViewport({ scale: scale });
+
+      // Create canvas for this page
+      const canvas = document.createElement('canvas');
+      canvas.className = 'pdf-page-canvas mx-auto';
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const ctx = canvas.getContext('2d');
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: viewport
+      };
+
+      // Render page
+      page.render(renderContext).promise.then(function () {
+        container.appendChild(canvas);
+      });
+    });
+  }
+  {% endif %}
+</script>
+
+{% endblock %}

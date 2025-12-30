@@ -9,10 +9,10 @@ class Chapter(models.Model):
         return f"{self.order}. {self.title}"
 
 class Lesson(models.Model):
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='lessons')
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='lessons', blank=True, null=True)
     title = models.CharField(max_length=200)
     order = models.PositiveIntegerField(default=1)
-    points_value = models.IntegerField(default=5, help_text="Stars awarded for completing this lesson")
+    points_value = models.IntegerField(default=10, help_text="Stars awarded for completing this lesson")
     # Files
     video_mp4 = models.FileField(upload_to='lessons/videos/', blank=True, null=True)
     pdf_file = models.FileField(upload_to='lessons/docs/', blank=True, null=True)
