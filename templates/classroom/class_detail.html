@@ -5,11 +5,28 @@
 {% block content %}
 
 <div class="mb-8">
+  <!-- Header with Back Button -->
   <div class="flex items-center justify-between mb-6">
-    <div>
-      <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white">{% trans "Manage Students" %}</h2>
-      <p class="text-gray-500 mt-1">{% trans "Total Students:" %} <span class="font-bold text-primary">{{ total_students
-          }}</span></p>
+    <div class="flex items-center space-x-4">
+      <a href="{% url 'class_management' %}"
+        class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </a>
+      <div>
+        <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white">
+          {% if class_name == 'unassigned' %}
+          {% trans "Unassigned Students" %}
+          {% elif class_name == 'all' %}
+          {% trans "All Students" %}
+          {% else %}
+          {% trans "Class" %} {{ class_name }}
+          {% endif %}
+        </h2>
+        <p class="text-gray-500 mt-1">{% trans "Total Students:" %} <span class="font-bold text-primary">{{
+            total_students }}</span></p>
+      </div>
     </div>
   </div>
 
@@ -30,8 +47,8 @@
         <select name="progress"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800">
           <option value="">{% trans "All Progress" %}</option>
-          <option value="high" {% if progress_filter == 'high' %}selected{% endif %}>{% trans "≥ 60%" %}</option>
-          <option value="low" {% if progress_filter == 'low' %}selected{% endif %}>{% trans "< 60%" %}</option>
+          <option value="high" {% if progress_filter=='high' %}selected{% endif %}>{% trans "≥ 60%" %}</option>
+          <option value="low" {% if progress_filter=='low' %}selected{% endif %}>{% trans "< 60%" %}</option>
         </select>
       </div>
 
@@ -40,8 +57,8 @@
         <select name="stars"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800">
           <option value="">{% trans "All Stars" %}</option>
-          <option value="high" {% if stars_filter == 'high' %}selected{% endif %}>{% trans "≥ 30 Stars" %}</option>
-          <option value="low" {% if stars_filter == 'low' %}selected{% endif %}>{% trans "< 30 Stars" %}</option>
+          <option value="high" {% if stars_filter=='high' %}selected{% endif %}>{% trans "≥ 30 Stars" %}</option>
+          <option value="low" {% if stars_filter=='low' %}selected{% endif %}>{% trans "< 30 Stars" %}</option>
         </select>
       </div>
 
@@ -50,7 +67,7 @@
           class="flex-1 bg-primary text-white font-bold py-2 px-4 rounded-lg hover:shadow-lg transition">
           {% trans "Apply Filters" %}
         </button>
-        <a href="{% url 'manage_students' %}"
+        <a href="{% url 'class_detail' class_name %}"
           class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition">
           {% trans "Reset" %}
         </a>
@@ -122,7 +139,8 @@
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-center">
-              <span class="text-primary font-bold">{{ student.star_points }} ⭐</span>
+              <span class="text-primary font-bold">{{ student.star_points }} <i
+                  class="fa-sharp fa-solid fa-star text-yellow-400"></i></span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-center">
               <span
@@ -131,7 +149,8 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-center">
-              <button onclick="toggleStudentStatus({{ student.id }}, {{ student.is_active|yesno:'true,false' }})"
+              <button
+                onclick="event.stopPropagation(); toggleStudentStatus({{ student.id }}, {{ student.is_active|yesno:'true,false' }})"
                 class="px-3 py-1 rounded {% if student.is_active %}bg-red-100 text-red-500 hover:text-red-700 hover:bg-red-200{% else %}bg-blue-100 text-blue-500 hover:text-blue-700 hover:bg-blue-200{% endif %} font-bold text-sm transition">
                 {% if student.is_active %}
                 {% trans "Deactivate" %}
@@ -158,7 +177,7 @@
 </div>
 
 <script>
-    function toggleStudentStatus(studentId, currentStatus) {
+  function toggleStudentStatus(studentId, currentStatus) {
     if (confirm('{% trans "Are you sure you want to change this student\'s status?" %}')) {
       fetch(`/toggle-student-status/${studentId}/`, {
         method: 'POST',
@@ -183,7 +202,7 @@
           alert('{% trans "An error occurred" %}');
         });
     }
-  };
+  }
 </script>
 
 {% endblock %}

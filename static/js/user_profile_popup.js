@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
       email: trigger.dataset.userEmail || '',
       stars: trigger.dataset.userStars || '0',
       role: trigger.dataset.userRole || 'Student',
+      studentClass: trigger.dataset.userClass || '',
       profilePic: trigger.dataset.userProfilePic || '',
       bio: trigger.dataset.userBio || '',
       joined: trigger.dataset.userJoined || '',
@@ -82,6 +83,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update username and role
     document.getElementById('popup-username').textContent = `@${userData.username}`;
     document.getElementById('popup-role').textContent = userData.role;
+
+    // Update class (show only if student has a class)
+    const classElement = document.getElementById('popup-class');
+    if (userData.studentClass && userData.role === 'Student') {
+      classElement.textContent = userData.studentClass;
+      classElement.style.display = 'inline-block';
+    } else {
+      classElement.style.display = 'none';
+    }
 
     // Update email
     const emailLink = document.getElementById('popup-email');

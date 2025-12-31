@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+
+<div class="mb-8">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white">{% trans "My Class" %} - {{ class_name }}</h2>
+      <p class="text-gray-500 mt-1">{% trans "Total Students:" %} <span class="font-bold text-primary">{{ total_classmates }}</span></p>
+    </div>
+  </div>
+
+  <!-- Classmates Table -->
+  <div class="bg-surface rounded-2xl shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <tr>
+            <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              {% trans "Student" %}
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              {% trans "Email" %}
+            </th>
+            <th
+              class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              {% trans "Progress" %}
+            </th>
+            <th
+              class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              {% trans "Stars" %}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          {% for classmate in classmates %}
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition user-profile-trigger cursor-pointer"
+            data-user-name="{{ classmate.first_name }} {{ classmate.last_name }}"
+            data-user-username="{{ classmate.username }}" data-user-email="{{ classmate.email }}"
+            data-user-stars="{{ classmate.star_points }}" data-user-role="Student" data-user-class="{{ class_name }}" {% if classmate.profile_picture %}data-user-profile-pic="{{ classmate.profile_picture.url }}" {% endif %}
+            data-user-bio="{{ classmate.bio }}" data-user-joined="{{ classmate.created_at|date:'F j, Y' }}"
+            data-user-progress="{{ classmate.progress_percent }}%">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center space-x-3">
+                {% if classmate.profile_picture %}
+                <img src="{{ classmate.profile_picture.url }}" alt="{{ classmate.first_name }}"
+                  class="w-10 h-10 rounded-full object-cover border-2 border-primary">
+                {% else %}
+                <div
+                  class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center text-lg font-bold">
+                  {{ classmate.first_name|first|upper }}
+                </div>
+                {% endif %}
+                <div>
+                  <p class="font-bold text-sm text-gray-900 dark:text-white">
+                    {{ classmate.first_name }} {{ classmate.last_name }}
+                    {% if classmate.id == user.id %}
+                    <span
+                      class="ml-2 px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">{% trans "You" %}</span>
+                    {% endif %}
+                  </p>
+                  <p class="text-xs text-gray-500">@{{ classmate.username }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+              {{ classmate.email }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <div class="flex items-center justify-center">
+                <div class="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: {{ classmate.progress_percent }}%"></div>
+                </div>
+                <span class="text-sm font-bold text-gray-900 dark:text-white">{{ classmate.progress_percent }}%</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span class="text-primary font-bold">{{ classmate.star_points }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-12 text-center">
+              <div class="text-gray-500">
+                <p class="text-lg font-bold mb-2">{% trans "Only you in this class" %}</p>
+                <p class="text-sm">{% trans "You are the only student in this class so far." %}</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+{% endblock %}

@@ -43,6 +43,7 @@ from django.http import HttpResponse
 from django.utils.translation import activate
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from datetime import datetime, timedelta
 
 # LANGUAGE SWITCHER VIEW
@@ -159,74 +160,7 @@ def lesson_detail(request, lesson_id):
     # We will build this later. For now, it just renders a simple text.
     return render(request, 'base.html')
 
-# 3. MANAGE STUDENTS VIEW (For Teachers)
-@login_required(login_url='signin')
-def manage_students(request):
-    from django.db.models import Q
-    from users.models import User
-    from .models import Lesson, Progress
-    
-    # Check if user is teacher
-    if not request.user.is_teacher:
-        return redirect('dashboard')
-    
-    # Get filter parameters
-    name_filter = request.GET.get('name', '')
-    progress_filter = request.GET.get('progress', '')  # 'high' or 'low'
-    stars_filter = request.GET.get('stars', '')  # 'high' or 'low'
-    
-    # Get all students
-    students = User.objects.filter(role='student')
-    
-    # Apply name filter
-    if name_filter:
-        students = students.filter(
-            Q(first_name__icontains=name_filter) | 
-            Q(last_name__icontains=name_filter) |
-            Q(username__icontains=name_filter)
-        )
-    
-    # Calculate progress for each student
-    total_lessons = Lesson.objects.count()
-    students_data = []
-    
-    for student in students:
-        completed = Progress.objects.filter(student=student, is_completed=True).count()
-        progress_percent = int((completed / total_lessons) * 100) if total_lessons > 0 else 0
-        
-        students_data.append({
-            'id': student.id,
-            'first_name': student.first_name,
-            'last_name': student.last_name,
-            'username': student.username,
-            'email': student.email,
-            'star_points': student.star_points,
-            'progress_percent': progress_percent,
-            'is_active': student.is_active,
-            'profile_picture': student.profile_picture,
-        })
-    
-    # Apply progress filter
-    if progress_filter == 'high':
-        students_data = [s for s in students_data if s['progress_percent'] >= 60]
-    elif progress_filter == 'low':
-        students_data = [s for s in students_data if s['progress_percent'] < 60]
-    
-    # Apply stars filter
-    if stars_filter == 'high':
-        students_data = [s for s in students_data if s['star_points'] >= 30]
-    elif stars_filter == 'low':
-        students_data = [s for s in students_data if s['star_points'] < 30]
-    
-    context = {
-        'students': students_data,
-        'name_filter': name_filter,
-        'progress_filter': progress_filter,
-        'stars_filter': stars_filter,
-        'total_students': len(students_data),
-    }
-    
-    return render(request, 'classroom/manage_students.html', context)
+# 3. MANAGE STUDENTS VIEW - Removed (replaced by class_management and class_detail)
 
 # 4. TOGGLE STUDENT STATUS (For Teachers)
 @login_required(login_url='signin')
@@ -367,3 +301,163 @@ def lesson_detail_category(request, lesson_id, category):
     }
     
     return render(request, 'classroom/lesson_detail.html', context)
+
+
+# 7. MY CLASS VIEW (For Students - see classmates)
+@login_required(login_url='signin')
+def my_class(request):
+    from users.models import User
+    from .models import Lesson, Progress
+    
+    # Check if user is student
+    if request.user.role != 'student':
+        return redirect('dashboard')
+    
+    # Check if student has a class assigned
+    if not request.user.student_class:
+        messages.warning(request, 'You have not been assigned to a class yet. Please update your profile.')
+        return redirect('profile')
+    
+    # Get all students in the same class (including current user)
+    classmates = User.objects.filter(
+        role='student',
+        student_class=request.user.student_class,
+        is_active=True
+    ).order_by('first_name', 'last_name')
+    
+    # Calculate progress for each classmate
+    total_lessons = Lesson.objects.count()
+    classmates_data = []
+    
+    for classmate in classmates:
+        completed = Progress.objects.filter(student=classmate, is_completed=True).count()
+        progress_percent = int((completed / total_lessons) * 100) if total_lessons > 0 else 0
+        
+        classmates_data.append({
+            'id': classmate.id,
+            'first_name': classmate.first_name,
+            'last_name': classmate.last_name,
+            'username': classmate.username,
+            'email': classmate.email,
+            'star_points': classmate.star_points,
+            'progress_percent': progress_percent,
+            'profile_picture': classmate.profile_picture,
+            'bio': classmate.bio,
+            'created_at': classmate.created_at,
+        })
+    
+    context = {
+        'classmates': classmates_data,
+        'class_name': request.user.student_class,
+        'total_classmates': len(classmates_data),
+    }
+    
+    return render(request, 'classroom/my_class.html', context)
+
+
+# 8. CLASS MANAGEMENT OVERVIEW (For Teachers - see all classes)
+@login_required(login_url='signin')
+def class_management(request):
+    from users.models import User
+    from django.db.models import Count
+    
+    # Check if user is teacher
+    if not request.user.is_teacher:
+        return redirect('dashboard')
+    
+    # Get all classes with student counts
+    classes_data = User.objects.filter(
+        role='student',
+        student_class__isnull=False
+    ).values('student_class').annotate(
+        total_students=Count('id')
+    ).order_by('student_class')
+    
+    # Get students without a class
+    no_class_count = User.objects.filter(role='student', student_class__isnull=True).count()
+    
+    context = {
+        'classes': classes_data,
+        'no_class_count': no_class_count,
+    }
+    
+    return render(request, 'classroom/student_management.html', context)
+
+
+# 9. CLASS DETAIL VIEW (For Teachers - see students in a specific class)
+@login_required(login_url='signin')
+def class_detail(request, class_name):
+    from django.db.models import Q
+    from users.models import User
+    from .models import Lesson, Progress
+    
+    # Check if user is teacher
+    if not request.user.is_teacher:
+        return redirect('dashboard')
+    
+    # Get filter parameters
+    name_filter = request.GET.get('name', '')
+    progress_filter = request.GET.get('progress', '')
+    stars_filter = request.GET.get('stars', '')
+    
+    # Get students in this class, unassigned, or all
+    if class_name == 'unassigned':
+        students = User.objects.filter(role='student', student_class__isnull=True)
+    elif class_name == 'all':
+        students = User.objects.filter(role='student')
+    else:
+        students = User.objects.filter(role='student', student_class=class_name)
+    
+    # Apply name filter
+    if name_filter:
+        students = students.filter(
+            Q(first_name__icontains=name_filter) | 
+            Q(last_name__icontains=name_filter) |
+            Q(username__icontains=name_filter)
+        )
+    
+    # Calculate progress for each student
+    total_lessons = Lesson.objects.count()
+    students_data = []
+    
+    for student in students:
+        completed = Progress.objects.filter(student=student, is_completed=True).count()
+        progress_percent = int((completed / total_lessons) * 100) if total_lessons > 0 else 0
+        
+        students_data.append({
+            'id': student.id,
+            'first_name': student.first_name,
+            'last_name': student.last_name,
+            'username': student.username,
+            'email': student.email,
+            'star_points': student.star_points,
+            'progress_percent': progress_percent,
+            'is_active': student.is_active,
+            'profile_picture': student.profile_picture,
+            'student_class': student.student_class,
+            'bio': student.bio,
+            'created_at': student.created_at,
+        })
+    
+    # Apply progress filter
+    if progress_filter == 'high':
+        students_data = [s for s in students_data if s['progress_percent'] >= 60]
+    elif progress_filter == 'low':
+        students_data = [s for s in students_data if s['progress_percent'] < 60]
+    
+    # Apply stars filter
+    if stars_filter == 'high':
+        students_data = [s for s in students_data if s['star_points'] >= 30]
+    elif stars_filter == 'low':
+        students_data = [s for s in students_data if s['star_points'] < 30]
+    
+    context = {
+        'students': students_data,
+        'class_name': class_name,
+        'name_filter': name_filter,
+        'progress_filter': progress_filter,
+        'stars_filter': stars_filter,
+        'total_students': len(students_data),
+    }
+    
+    return render(request, 'classroom/class_detail.html', context)

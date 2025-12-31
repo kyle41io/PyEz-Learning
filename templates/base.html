@@ -37,8 +37,8 @@
     }
 
     .dark {
-      --bg-paper: #1f1f1f;
-      --bg-surface: #292935;
+      --bg-paper: #1b1b1b;
+      --bg-surface: #2e2d2c;
       --text-main: #f9fafb;
     }
 
@@ -80,11 +80,15 @@
         <a href="{% url 'curriculum' %}" data-page="curriculum"
           class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Curriculum" %}</a>
         {% if user.is_teacher %}
-        <a href="{% url 'manage_students' %}" data-page="manage_students"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Manage Students" %}</a>
+        <a href="{% url 'class_management' %}" data-page="class-management"
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Class Management" %}</a>
         <a href="#" data-page="teaching"
           class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Teaching Content" %}</a>
         {% else %}
+        {% if user.student_class %}
+        <a href="{% url 'my_class' %}" data-page="my-class"
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "My Class" %}</a>
+        {% endif %}
         <a href="#" data-page="progress"
           class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Progress" %}</a>
         {% endif %}
@@ -119,7 +123,7 @@
             <!-- User Info Section -->
             <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
               <p class="text-sm font-bold truncate">{{ user.first_name }} {{ user.last_name }}</p>
-              <p class="text-xs text-primary font-bold">⭐ {{ user.star_points }} {% trans "Stars" %}</p>
+              <p class="text-xs text-primary font-bold"><i class="fa-sharp fa-solid fa-star text-yellow-400"></i> {{ user.star_points }} {% trans "Stars" %}</p>
             </div>
 
             <!-- User Menu Items -->
@@ -283,9 +287,11 @@
 
         if (page === 'dashboard' && (currentPath === '/en/' || currentPath === '/vi/')) {
           isActive = true;
-        } else if (page === 'manage_students' && currentPath.includes('/manage-students')) {
+        } else if (page === 'class-management' && currentPath.includes('/class-management')) {
           isActive = true;
-        } else if (page === 'create_teacher' && currentPath.includes('/create-teacher')) {
+        } else if (page === 'my-class' && currentPath.includes('/my-class')) {
+          isActive = true;
+        } else if (page === 'create-teacher' && currentPath.includes('/create-teacher')) {
           isActive = true;
         } else if (page === 'curriculum' && currentPath.includes('/curriculum')) {
           isActive = true;

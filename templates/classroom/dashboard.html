@@ -20,7 +20,7 @@
 
             <div class="flex justify-between items-end">
                 <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-bold backdrop-blur-sm">
-                    {{ exam.points_worth }} ⭐
+                    {{ exam.points_worth }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i>
                 </span>
                 <a href="#"
                     class="bg-white text-red-500 px-4 py-2 rounded-lg font-bold shadow hover:bg-gray-100 transition">
@@ -75,7 +75,7 @@
         </div>
 
         <div class="flex items-center space-x-2 mb-2">
-            <span class="text-2xl">📝</span>
+            <i class="fa-solid fa-pen"></i>
             <h2 class="text-xl font-bold">{% trans "My Exams" %}</h2>
         </div>
 
@@ -118,10 +118,10 @@
                 {% trans "out of" %} <span class="font-bold text-gray-800 dark:text-white">{{ total_lessons }}</span> {% trans "lessons." %}
             </p>
             <div class="mt-6">
-                <button
+                <a href="/curriculum"
                     class="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-primary font-bold p-2 rounded-xl transition">
                     {% trans "Continue Learning" %}
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -137,12 +137,13 @@
         </div>
 
         <div class="flex items-center space-x-2 mb-2">
-            <span class="text-2xl">⭐</span>
+            <i class="fa-sharp fa-solid fa-star text-primary"></i>
             <h2 class="text-xl font-bold">{% trans "My Stars" %}</h2>
         </div>
 
         <div class="flex flex-col items-center justify-center h-full py-8">
-            <span class="text-6xl font-black text-primary drop-shadow-sm">{{ user_stars }} ⭐</span>
+            <span class="text-6xl font-black text-primary drop-shadow-sm">{{ user_stars }} <i
+                    class="fa-sharp fa-solid fa-star text-yellow-400"></i></span>
             <span class="text-gray-500 font-bold mt-2">{% trans "Total Stars Earned" %}</span>
 
             <div class="mt-6 flex space-x-2">
@@ -179,7 +180,7 @@
                         data-user-name="{{ student.first_name }} {{ student.last_name }}"
                         data-user-username="{{ student.username }}" data-user-email="{{ student.email }}"
                         data-user-stars="{{ student.star_points }}" data-user-role="{{ student.get_role_display }}"
-                        data-user-bio="{{ student.bio }}" data-user-joined="{{ student.created_at|date:'F j, Y' }}"
+                        data-user-class="{{ student.student_class }}" data-user-bio="{{ student.bio }}" data-user-joined="{{ student.created_at|date:'F j, Y' }}"
                         data-user-profile-pic="{% if student.profile_picture %}{{ student.profile_picture.url }}{% endif %}"
                         data-user-progress="{{ student.progress_percent }}">
                         {% if student.profile_picture %}
@@ -199,7 +200,7 @@
                     </div>
                 </div>
                 <div class="font-bold text-primary">
-                    {{ student.star_points }} ⭐
+                    {{ student.star_points }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i>
                 </div>
             </div>
             {% empty %}
@@ -209,7 +210,7 @@
 
         <div class="mt-4 text-center">
             {% if user.is_teacher %}
-            <a href="/manage-students" class="text-sm text-purple-500 font-bold hover:underline">{% trans "View All Students" %}</a>
+            <a href="/class-management" class="text-sm text-purple-500 font-bold hover:underline">{% trans "View All Students" %}</a>
             {% endif %}
         </div>
     </div>

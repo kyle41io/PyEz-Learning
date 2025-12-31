@@ -124,6 +124,16 @@
 
         <div>
           <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
+            {% trans "Class" %}
+          </label>
+          {{ form.student_class }}
+          {% if form.student_class.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.student_class.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
             {% trans "Profile Picture" %} <span class="text-gray-400 text-xs">({% trans "optional" %})</span>
           </label>
           <input type="file" name="profile_picture" accept="image/*"
