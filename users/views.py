@@ -33,6 +33,13 @@ def signin(request):
         form = SignInForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            # Check if user account is active
+            if not user.is_active:
+                messages.error(request, 'Your account has been deactivated. Please contact an administrator.')
+                return render(request, 'auth/signin.html', {
+                    'form': form,
+                    'has_google_oauth': has_google_oauth
+                })
             login(request, user)
             return redirect('dashboard')
         else:
@@ -85,14 +92,14 @@ def is_admin_or_superuser(user):
 @login_required(login_url='signin')
 @user_passes_test(is_admin_or_superuser, login_url='dashboard')
 @require_http_methods(["GET", "POST"])
-def create_teacher(request):
+def teacher_management(request):
     """Create teacher account (admin only)"""
     if request.method == 'POST':
         form = CreateTeacherForm(request.POST)
         if form.is_valid():
             user = form.save()
             messages.success(request, f'Teacher account created for {user.first_name} {user.last_name}')
-            return redirect('create_teacher')
+            return redirect('teacher_management')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -102,9 +109,30 @@ def create_teacher(request):
     
     context = {
         'form': form,
-        'teachers': User.objects.filter(role='teacher')
+        'teachers': User.objects.filter(role='teacher').order_by('-created_at')
     }
-    return render(request, 'auth/create_teacher.html', context)
+    return render(request, 'auth/teacher_management.html', context)
+
+@login_required(login_url='signin')
+@user_passes_test(is_admin_or_superuser, login_url='dashboard')
+def toggle_teacher_status(request, teacher_id):
+    """Toggle teacher account active/inactive status (admin only)"""
+    from django.http import JsonResponse
+    import json
+    
+    if request.method == 'POST':
+        try:
+            teacher = User.objects.get(id=teacher_id, role='teacher')
+            data = json.loads(request.body)
+            teacher.is_active = data.get('is_active', True)
+            teacher.save()
+            return JsonResponse({'success': True})
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Teacher not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
 
 @login_required(login_url='signin')
 @require_http_methods(["GET", "POST"])

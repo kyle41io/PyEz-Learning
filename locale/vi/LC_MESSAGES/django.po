@@ -284,3 +284,51 @@ msgstr "Người dùng học sinh"
 
 msgid "Teacher management"
 msgstr "Quản lý giáo viên"
+
+msgid "Class Management"
+msgstr "Quản lý lớp học"
+
+msgid "Teacher Management"
+msgstr "Quản lý giáo viên"
+
+msgid "All Students"
+msgstr "Tất cả học sinh"
+
+msgid "Average Student Progress"
+msgstr "Tiến độ trung bình của học sinh"
+
+msgid "My Exams"
+msgstr "Bài kiểm tra của tôi"
+
+msgid "Manage students by class"
+msgstr "Quản lý học sinh theo lớp"
+
+msgid "students"
+msgstr "học sinh"
+
+msgid "Students"
+msgstr "Học sinh"
+
+msgid "View class details"
+msgstr "Xem chi tiết lớp"
+
+msgid "Class"
+msgstr "Lớp"
+
+msgid "Class Filter"
+msgstr "Lọc theo lớp"
+
+msgid "All Classes"
+msgstr "Tất cả lớp"
+
+msgid "Status Filter"
+msgstr "Lọc theo trạng thái"
+
+msgid "All Status"
+msgstr "Tất cả trạng thái"
+
+msgid "Inactive"
+msgstr "Không hoạt động"
+
+msgid "Unassigned"
+msgstr "Chưa phân lớp"

@@ -29,7 +29,8 @@ urlpatterns = [
     path('signup/', user_views.signup, name='signup'),
     path('signout/', user_views.signout, name='signout'),
     path('profile/', user_views.profile, name='profile'),
-    path('create-teacher/', user_views.create_teacher, name='create_teacher'),
+    path('teacher-management/', user_views.teacher_management, name='teacher_management'),
+    path('toggle-teacher-status/<int:teacher_id>/', user_views.toggle_teacher_status, name='toggle_teacher_status'),
     path('', include('curriculum.urls')),  # Dashboard is here at /en/
     path('exams/', include('exams.urls')),
     path('users/', include('django.contrib.auth.urls')),

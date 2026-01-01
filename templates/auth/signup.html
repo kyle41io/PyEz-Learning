@@ -134,6 +134,16 @@
 
         <div>
           <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
+            {% trans "Gender" %}
+          </label>
+          {{ form.gender }}
+          {% if form.gender.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.gender.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
             {% trans "Profile Picture" %} <span class="text-gray-400 text-xs">({% trans "optional" %})</span>
           </label>
           <input type="file" name="profile_picture" accept="image/*"
@@ -181,8 +191,7 @@
       <div
         class="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-800 dark:text-blue-200 text-xs">
         <p class="font-bold">{% trans "Note:" %}</p>
-        <p>{% trans "New accounts are created as Student role by default. Contact an administrator if you need Teacher
-          access." %}</p>
+        <p>{% trans "New accounts are created as Student role by default. Contact an administrator if you need Teacher access." %}</p>
       </div>
     </div>
   </div>

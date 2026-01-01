@@ -9,6 +9,6 @@ urlpatterns = [
     path('set-language/<str:language>/', views.set_language_view, name='set_language'),
     path('my-class/', views.my_class, name='my_class'),
     path('class-management/', views.class_management, name='class_management'),
-    path('class/<str:class_name>/', views.class_detail, name='class_detail'),
+    path('class-management/<str:class_name>/', views.class_detail, name='class_detail'),
     path('toggle-student-status/<int:student_id>/', views.toggle_student_status, name='toggle_student_status'),
 ]

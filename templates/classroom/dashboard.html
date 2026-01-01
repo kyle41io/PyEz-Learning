@@ -75,7 +75,7 @@
         </div>
 
         <div class="flex items-center space-x-2 mb-2">
-            <i class="fa-solid fa-pen"></i>
+            <i class="fa-solid fa-pen text-primary"></i>
             <h2 class="text-xl font-bold">{% trans "My Exams" %}</h2>
         </div>
 
@@ -103,6 +103,7 @@
     <div
         class="bg-surface p-6 rounded-2xl shadow-lg border-t-4 border-primary relative overflow-hidden transform hover:-translate-y-1 transition duration-300">
         <div class="flex items-center space-x-2 mb-6">
+            <i class="fa-solid fa-bars-progress text-primary"></i>
             <h2 class="text-xl font-bold">{% trans "My Progress" %}</h2>
         </div>
 
@@ -157,6 +158,7 @@
     <div
         class="bg-surface p-6 rounded-2xl shadow-lg border-t-4 border-primary relative overflow-hidden transform hover:-translate-y-1 transition duration-300">
         <div class="flex items-center space-x-2 mb-6">
+            <i class="fa-solid fa-trophy text-primary"></i>
             <h2 class="text-xl font-bold">{% trans "Leaderboard" %}</h2>
         </div>
 
@@ -178,7 +180,7 @@
                     </div>
                     <div class="user-profile-trigger cursor-pointer" data-user-id="{{ student.id }}"
                         data-user-name="{{ student.first_name }} {{ student.last_name }}"
-                        data-user-username="{{ student.username }}" data-user-email="{{ student.email }}"
+                        data-user-username="{{ student.username }}" data-user-gender="{{student.gender}}" data-user-email="{{ student.email }}"
                         data-user-stars="{{ student.star_points }}" data-user-role="{{ student.get_role_display }}"
                         data-user-class="{{ student.student_class }}" data-user-bio="{{ student.bio }}" data-user-joined="{{ student.created_at|date:'F j, Y' }}"
                         data-user-profile-pic="{% if student.profile_picture %}{{ student.profile_picture.url }}{% endif %}"

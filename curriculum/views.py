@@ -1,43 +1,3 @@
-# from django.shortcuts import render, get_object_or_404
-# from django.contrib.auth import get_user_model
-# from django.utils import timezone
-# from .models import Chapter, Lesson, Progress
-
-# # Import exams only if the file exists and is working
-# # If you haven't created exams/models.py or migrations yet, comment lines 7 and 13 out.
-# from exams.models import ActiveExam 
-
-# User = get_user_model()
-
-# def student_dashboard(request):
-#     # 1. Get 'Hot' Active Exams (Deadline in future)
-#     # Filter: end_time must be greater than now (gt = greater than)
-#     now = timezone.now()
-#     active_exams = ActiveExam.objects.filter(end_time__gt=now).order_by('end_time')[:3]
-
-#     # 2. Get User's Total Stars (Already in request.user, but handy context)
-#     user_stars = request.user.star_points if request.user.is_authenticated else 0
-
-#     # 3. Calculate Progress
-#     total_lessons = Lesson.objects.count()
-#     completed_lessons = Progress.objects.filter(student=request.user, is_completed=True).count() if request.user.is_authenticated else 0
-    
-#     progress_percent = 0
-#     if total_lessons > 0:
-#         progress_percent = int((completed_lessons / total_lessons) * 100)
-
-#     # 4. Top Stars (Leaderboard) - Top 5 students
-#     leaderboard = User.objects.filter(is_student=True).order_by('-star_points')[:5]
-
-#     context = {
-#         'active_exams': active_exams,
-#         'user_stars': user_stars,
-#         'progress_percent': progress_percent,
-#         'completed_lessons': completed_lessons,
-#         'total_lessons': total_lessons,
-#         'leaderboard': leaderboard,
-#     }
-#     return render(request, 'classroom/dashboard.html', context)
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils.translation import activate
@@ -306,6 +266,7 @@ def lesson_detail_category(request, lesson_id, category):
 # 7. MY CLASS VIEW (For Students - see classmates)
 @login_required(login_url='signin')
 def my_class(request):
+    from django.db.models import Q
     from users.models import User
     from .models import Lesson, Progress
     
@@ -318,12 +279,25 @@ def my_class(request):
         messages.warning(request, 'You have not been assigned to a class yet. Please update your profile.')
         return redirect('profile')
     
+    # Get filter parameters
+    name_filter = request.GET.get('name', '')
+    progress_filter = request.GET.get('progress', '')
+    stars_filter = request.GET.get('stars', '')
+    
     # Get all students in the same class (including current user)
     classmates = User.objects.filter(
         role='student',
         student_class=request.user.student_class,
         is_active=True
     ).order_by('first_name', 'last_name')
+    
+    # Apply name filter
+    if name_filter:
+        classmates = classmates.filter(
+            Q(first_name__icontains=name_filter) | 
+            Q(last_name__icontains=name_filter) |
+            Q(username__icontains=name_filter)
+        )
     
     # Calculate progress for each classmate
     total_lessons = Lesson.objects.count()
@@ -344,12 +318,29 @@ def my_class(request):
             'profile_picture': classmate.profile_picture,
             'bio': classmate.bio,
             'created_at': classmate.created_at,
+            'gender': classmate.gender,
+            'get_gender_display': classmate.get_gender_display() if classmate.gender else '',
         })
+    
+    # Apply progress filter
+    if progress_filter == 'high':
+        classmates_data = [c for c in classmates_data if c['progress_percent'] >= 60]
+    elif progress_filter == 'low':
+        classmates_data = [c for c in classmates_data if c['progress_percent'] < 60]
+    
+    # Apply stars filter
+    if stars_filter == 'high':
+        classmates_data = [c for c in classmates_data if c['star_points'] >= 30]
+    elif stars_filter == 'low':
+        classmates_data = [c for c in classmates_data if c['star_points'] < 30]
     
     context = {
         'classmates': classmates_data,
         'class_name': request.user.student_class,
         'total_classmates': len(classmates_data),
+        'name_filter': name_filter,
+        'progress_filter': progress_filter,
+        'stars_filter': stars_filter,
     }
     
     return render(request, 'classroom/my_class.html', context)
@@ -399,6 +390,8 @@ def class_detail(request, class_name):
     name_filter = request.GET.get('name', '')
     progress_filter = request.GET.get('progress', '')
     stars_filter = request.GET.get('stars', '')
+    class_filter = request.GET.get('class', '')
+    status_filter = request.GET.get('status', '')
     
     # Get students in this class, unassigned, or all
     if class_name == 'unassigned':
@@ -415,6 +408,20 @@ def class_detail(request, class_name):
             Q(last_name__icontains=name_filter) |
             Q(username__icontains=name_filter)
         )
+    
+    # Apply class filter (only for 'all' view)
+    if class_name == 'all' and class_filter:
+        if class_filter == 'unassigned':
+            students = students.filter(student_class__isnull=True)
+        else:
+            students = students.filter(student_class=class_filter)
+    
+    # Apply status filter (only for 'all' view)
+    if class_name == 'all' and status_filter:
+        if status_filter == 'active':
+            students = students.filter(is_active=True)
+        elif status_filter == 'inactive':
+            students = students.filter(is_active=False)
     
     # Calculate progress for each student
     total_lessons = Lesson.objects.count()
@@ -437,6 +444,8 @@ def class_detail(request, class_name):
             'student_class': student.student_class,
             'bio': student.bio,
             'created_at': student.created_at,
+            'gender': student.gender,
+            'get_gender_display': student.get_gender_display() if student.gender else '',
         })
     
     # Apply progress filter
@@ -451,12 +460,23 @@ def class_detail(request, class_name):
     elif stars_filter == 'low':
         students_data = [s for s in students_data if s['star_points'] < 30]
     
+    # Get all unique classes for filter dropdown (only for 'all' view)
+    all_classes = []
+    if class_name == 'all':
+        all_classes = User.objects.filter(
+            role='student', 
+            student_class__isnull=False
+        ).values_list('student_class', flat=True).distinct().order_by('student_class')
+    
     context = {
         'students': students_data,
         'class_name': class_name,
         'name_filter': name_filter,
         'progress_filter': progress_filter,
         'stars_filter': stars_filter,
+        'class_filter': class_filter,
+        'status_filter': status_filter,
+        'all_classes': all_classes,
         'total_students': len(students_data),
     }
     

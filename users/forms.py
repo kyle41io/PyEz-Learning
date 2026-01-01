@@ -31,6 +31,13 @@ class SignUpForm(UserCreationForm):
             'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white'
         })
     )
+    gender = forms.ChoiceField(
+        choices=[('', 'Select gender')] + User.GENDER_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white'
+        })
+    )
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={
         'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
         'placeholder': 'Enter password'
@@ -42,7 +49,7 @@ class SignUpForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name', 'last_name', 'student_class', 'profile_picture', 'password1', 'password2')
+        fields = ('email', 'username', 'first_name', 'last_name', 'student_class', 'gender', 'profile_picture', 'password1', 'password2')
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -116,7 +123,7 @@ class CreateTeacherForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name', 'last_name', 'profile_picture')
+        fields = ('email', 'username', 'first_name', 'last_name', 'gender', 'profile_picture')
         widgets = {
             'email': forms.EmailInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
@@ -137,6 +144,9 @@ class CreateTeacherForm(forms.ModelForm):
             'profile_picture': forms.FileInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
                 'accept': 'image/*'
+            }),
+            'gender': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white'
             }),
         }
 
@@ -194,7 +204,7 @@ class ProfileEditForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'student_class', 'profile_picture', 'bio')
+        fields = ('first_name', 'last_name', 'student_class', 'gender', 'profile_picture', 'bio')
         widgets = {
             'first_name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white',
@@ -205,6 +215,9 @@ class ProfileEditForm(forms.ModelForm):
                 'placeholder': 'Last Name'
             }),
             'student_class': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white'
+            }),
+            'gender': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white'
             }),
             'profile_picture': forms.FileInput(attrs={
@@ -241,6 +254,7 @@ class ProfileEditForm(forms.ModelForm):
         # Update basic info
         user_instance.first_name = self.cleaned_data.get('first_name')
         user_instance.last_name = self.cleaned_data.get('last_name')
+        user_instance.gender = self.cleaned_data.get('gender')
         
         # Only update class for students
         if user_instance.role == 'student':

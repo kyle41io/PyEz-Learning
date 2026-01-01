@@ -24,31 +24,27 @@
           {% trans "Class" %} {{ class_name }}
           {% endif %}
         </h2>
-        <p class="text-gray-500 mt-1">{% trans "Total Students:" %} <span class="font-bold text-primary">{{
-            total_students }}</span></p>
+        <p class="text-gray-500 mt-1">{% trans "Total Students:" %} <span class="font-bold text-primary">{{ total_students }}</span></p>
       </div>
     </div>
   </div>
 
   <!-- Filters -->
   <div class="bg-surface rounded-2xl shadow-lg p-6 mb-6">
-    <h3 class="text-lg font-bold mb-4">{% trans "Filters" %}</h3>
-    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-{% if class_name == 'all' %}6{% else %}4{% endif %} gap-4">
       <div>
-        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Search by Name"
-          %}</label>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Search by Name" %}</label>
         <input type="text" name="name" value="{{ name_filter }}" placeholder="{% trans 'Enter name or username' %}"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800">
       </div>
 
       <div>
-        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Progress Filter"
-          %}</label>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Progress Filter" %}</label>
         <select name="progress"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800">
           <option value="">{% trans "All Progress" %}</option>
-          <option value="high" {% if progress_filter=='high' %}selected{% endif %}>{% trans "≥ 60%" %}</option>
-          <option value="low" {% if progress_filter=='low' %}selected{% endif %}>{% trans "< 60%" %}</option>
+          <option value="high" {% if progress_filter == 'high' %}selected{% endif %}>{% trans "≥ 60%" %}</option>
+          <option value="low" {% if progress_filter == 'low' %}selected{% endif %}>{% trans "< 60%" %}</option>
         </select>
       </div>
 
@@ -57,10 +53,34 @@
         <select name="stars"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800">
           <option value="">{% trans "All Stars" %}</option>
-          <option value="high" {% if stars_filter=='high' %}selected{% endif %}>{% trans "≥ 30 Stars" %}</option>
-          <option value="low" {% if stars_filter=='low' %}selected{% endif %}>{% trans "< 30 Stars" %}</option>
+          <option value="high" {% if stars_filter == 'high' %}selected{% endif %}>{% trans "≥ 30 Stars" %}</option>
+          <option value="low" {% if stars_filter == 'low' %}selected{% endif %}>{% trans "< 30 Stars" %}</option>
         </select>
       </div>
+
+      {% if class_name == 'all' %}
+      <div>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Class Filter" %}</label>
+        <select name="class"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800">
+          <option value="">{% trans "All Classes" %}</option>
+          <option value="unassigned" {% if class_filter == 'unassigned' %}selected{% endif %}>{% trans "Unassigned" %}</option>
+          {% for class in all_classes %}
+          <option value="{{ class }}" {% if class_filter == class %}selected{% endif %}>{{ class }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Status Filter" %}</label>
+        <select name="status"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800">
+          <option value="">{% trans "All Status" %}</option>
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+          <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
+        </select>
+      </div>
+      {% endif %}
 
       <div class="flex items-end space-x-2">
         <button type="submit"
@@ -87,6 +107,11 @@
             <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
               {% trans "Email" %}
             </th>
+            {% if class_name == 'all' %}
+            <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              {% trans "Class" %}
+            </th>
+            {% endif %}
             <th
               class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
               {% trans "Progress" %}
@@ -120,9 +145,14 @@
                 </div>
                 {% endif %}
                 <div>
-                  <p class="font-bold text-sm text-gray-900 dark:text-white">
-                    {{ student.first_name }} {{ student.last_name }}
-                  </p>
+                  <div class="flex items-center gap-1">
+                    <p class="font-bold text-sm text-gray-900 dark:text-white">
+                      {{ student.first_name }} {{ student.last_name }}
+                    </p>
+                    {% if student.gender %}
+                    <span>{% if student.gender == 'male' %}<i class="fa-solid fa-mars text-blue-500"></i>{% elif student.gender == 'female' %}<i class="fa-solid fa-venus text-pink-500"></i>{% else %}<i class="fa-solid fa-transgender text-primary"></i>{% endif %}</span>
+                    {% endif %}
+                  </div>
                   <p class="text-xs text-gray-500">@{{ student.username }}</p>
                 </div>
               </div>
@@ -130,6 +160,15 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
               {{ student.email }}
             </td>
+            {% if class_name == 'all' %}
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+              {% if student.student_class %}
+                <span class="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold">{{ student.student_class }}</span>
+              {% else %}
+                <span class="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-500 rounded-full text-xs font-bold">{% trans "Unassigned" %}</span>
+              {% endif %}
+            </td>
+            {% endif %}
             <td class="px-6 py-4 whitespace-nowrap text-center">
               <div class="flex items-center justify-center">
                 <div class="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
@@ -162,7 +201,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="px-6 py-12 text-center">
+            <td colspan="{% if class_name == 'all' %}7{% else %}6{% endif %}" class="px-6 py-12 text-center">
               <div class="text-gray-500">
                 <p class="text-lg font-bold mb-2">{% trans "No students found" %}</p>
                 <p class="text-sm">{% trans "Try adjusting your filters or check back later." %}</p>

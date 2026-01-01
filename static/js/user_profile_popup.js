@@ -65,7 +65,8 @@ document.addEventListener('DOMContentLoaded', function () {
       profilePic: trigger.dataset.userProfilePic || '',
       bio: trigger.dataset.userBio || '',
       joined: trigger.dataset.userJoined || '',
-      progress: trigger.dataset.userProgress || '0%'
+      progress: trigger.dataset.userProgress || '0%',
+      gender: trigger.dataset.userGender || ''
     };
 
     // Update profile picture or avatar
@@ -97,6 +98,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const emailLink = document.getElementById('popup-email');
     emailLink.href = `mailto:${userData.email}`;
     emailLink.textContent = userData.email;
+
+    const genderIcon = document.getElementById('popup-gender-icon');
+    if (userData.gender) {
+      // Set icon based on gender
+      if (userData.gender == 'Nam' || userData.gender.toLowerCase()=='male') {
+        genderIcon.innerHTML = '<i class="fa-solid fa-mars text-blue-500"></i>';
+      } else if (userData.gender == 'Nữ' || userData.gender.toLowerCase() == 'female') {
+        genderIcon.innerHTML = '<i class="fa-solid fa-venus text-pink-500"></i>';
+      } else {
+        genderIcon.innerHTML = '<i class="fa-solid fa-transgender text-primary"></i>';
+      }
+      genderIcon.style.display = 'inline-block';
+    } else {
+      genderIcon.style.display = 'none';
+    }
 
     // Update stars
     document.getElementById('popup-stars').textContent = userData.stars;

@@ -284,3 +284,51 @@ msgstr "Student User"
 
 msgid "Teacher management"
 msgstr "Teacher management"
+
+msgid "Class Management"
+msgstr "Class Management"
+
+msgid "Teacher Management"
+msgstr "Teacher Management"
+
+msgid "All Students"
+msgstr "All Students"
+
+msgid "Average Student Progress"
+msgstr "Average Student Progress"
+
+msgid "My Exams"
+msgstr "My Exams"
+
+msgid "Manage students by class"
+msgstr "Manage students by class"
+
+msgid "students"
+msgstr "students"
+
+msgid "Students"
+msgstr "Students"
+
+msgid "View class details"
+msgstr "View class details"
+
+msgid "Class"
+msgstr "Class"
+
+msgid "Class Filter"
+msgstr "Class Filter"
+
+msgid "All Classes"
+msgstr "All Classes"
+
+msgid "Status Filter"
+msgstr "Status Filter"
+
+msgid "All Status"
+msgstr "All Status"
+
+msgid "Inactive"
+msgstr "Inactive"
+
+msgid "Unassigned"
+msgstr "Unassigned"

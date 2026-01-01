@@ -93,7 +93,7 @@
           class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Progress" %}</a>
         {% endif %}
         {% if user.role == 'admin' %}
-        <a href="/create-teacher" data-page="create_teacher"
+        <a href="{% url 'teacher_management' %}" data-page="teacher-management"
           class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Teacher management" %}</a>
         {% endif %}
       </div>
@@ -291,7 +291,7 @@
           isActive = true;
         } else if (page === 'my-class' && currentPath.includes('/my-class')) {
           isActive = true;
-        } else if (page === 'create-teacher' && currentPath.includes('/create-teacher')) {
+        } else if (page === 'teacher-management' && currentPath.includes('/teacher-management')) {
           isActive = true;
         } else if (page === 'curriculum' && currentPath.includes('/curriculum')) {
           isActive = true;

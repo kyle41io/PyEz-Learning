@@ -40,7 +40,10 @@
       </div>
 
       <!-- Name -->
-      <h3 id="popup-name" class="text-xl font-bold text-gray-800 dark:text-white">User Name</h3>
+      <div class="flex items-center gap-2 justify-center">
+        <h3 id="popup-name" class="text-xl font-bold text-gray-800 dark:text-white">User Name</h3>
+        <span id="popup-gender-icon" class="text-xl">icon</span>
+      </div>
 
       <!-- Username and Role -->
       <div class="flex items-center space-x-2 mt-1 flex-wrap justify-center gap-2">
@@ -57,7 +60,7 @@
       <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-2">{% trans "Contact" %}
       </p>
       <div class="flex items-center space-x-2">
-        <span class="text-gray-400">📧</span>
+        <i class="fa-solid fa-envelope text-primary"></i>
         <a id="popup-email" href="mailto:" class="text-sm text-primary hover:underline break-all">email@example.com</a>
       </div>
     </div>
@@ -67,9 +70,9 @@
       <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider mb-3">{% trans "Stats" %}
       </p>
       <div class="grid grid-cols-2 gap-3">
-        <div class="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg text-center">
+        <div class="bg-yellow-50 flex gap-2 justify-center items-center dark:bg-yellow-900/20 p-3 rounded-lg text-center">
           <p id="popup-stars" class="text-2xl font-bold text-primary">0</p>
-          <p class="text-xs text-gray-600 dark:text-gray-400">{% trans "Stars" %}</p>
+          <i class="fa-sharp fa-solid fa-star text-yellow-400"></i>
         </div>
         <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-center">
           <p id="popup-progress" class="text-2xl font-bold text-blue-600">0%</p>
