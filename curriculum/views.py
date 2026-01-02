@@ -150,30 +150,74 @@ def toggle_student_status(request, student_id):
 # 5. CURRICULUM VIEW (Display all lessons)
 @login_required(login_url='signin')
 def curriculum_view(request):
-    from .models import Lesson
+    from .models import Lesson, Progress
     
     # Get all lessons ordered by order field
     lessons = Lesson.objects.all().order_by('order')
     
-    context = {
-        'lessons': lessons,
-    }
+    # For students, add lock/unlock status
+    if request.user.role == 'student':
+        lessons_data = []
+        for lesson in lessons:
+            progress, created = Progress.objects.get_or_create(
+                student=request.user,
+                lesson=lesson
+            )
+            
+            # Auto-unlock lesson 1
+            if lesson.order == 1 and not progress.is_unlocked:
+                progress.is_unlocked = True
+                progress.save()
+            
+            lessons_data.append({
+                'lesson': lesson,
+                'progress': progress,
+                'is_locked': not progress.is_unlocked
+            })
+        
+        context = {
+            'lessons_data': lessons_data,
+            'is_student': True,
+        }
+    else:
+        context = {
+            'lessons': lessons,
+            'is_student': False,
+        }
     
     return render(request, 'classroom/curriculum.html', context)
 
 # 6. LESSON DETAIL VIEW (Display specific category of a lesson)
 @login_required(login_url='signin')
 def lesson_detail_category(request, lesson_id, category):
-    from .models import Lesson
+    from .models import Lesson, Progress
     from django.shortcuts import get_object_or_404
     
     lesson = get_object_or_404(Lesson, id=lesson_id)
+    user = request.user
+    
+    # Check if lesson is unlocked for student
+    if user.role == 'student':
+        progress, created = Progress.objects.get_or_create(
+            student=user,
+            lesson=lesson
+        )
+        
+        # Auto-unlock lesson 1 for all students
+        if lesson.order == 1 and not progress.is_unlocked:
+            progress.is_unlocked = True
+            progress.save()
+        
+        # Check if lesson is locked
+        if not progress.is_unlocked:
+            messages.warning(request, 'This lesson is locked. Complete previous lessons to unlock it.')
+            return redirect('curriculum')
     
     # Define all possible categories in order
-    category_order = ['pdf_file', 'video_mp4', 'quiz_data', 'code_test_data', 'game_html_name']
+    category_order = ['pdf_file', 'youtube_id', 'quiz_data', 'code_test_data', 'game_html_name']
     category_names = {
         'pdf_file': 'Document',
-        'video_mp4': 'Video Lecture',
+        'youtube_id': 'Video Lecture',
         'quiz_data': 'Quiz Test',
         'code_test_data': 'Coding Challenge',
         'game_html_name': 'Interactive Game'
@@ -249,6 +293,11 @@ def lesson_detail_category(request, lesson_id, category):
     # Get category content
     category_content = getattr(lesson, category, None)
     
+    # Get progress data for students
+    progress_data = None
+    if user.role == 'student':
+        progress_data = Progress.objects.filter(student=user, lesson=lesson).first()
+    
     context = {
         'lesson': lesson,
         'category': category,
@@ -258,6 +307,7 @@ def lesson_detail_category(request, lesson_id, category):
         'prev_category': prev_category,
         'next_lesson': next_lesson,
         'next_category': next_category,
+        'progress': progress_data,
     }
     
     return render(request, 'classroom/lesson_detail.html', context)
@@ -481,3 +531,104 @@ def class_detail(request, class_name):
     }
     
     return render(request, 'classroom/class_detail.html', context)
+
+
+# 8. SUBMIT QUIZ VIEW (Handle quiz submission and unlock next lesson)
+@login_required(login_url='signin')
+def submit_quiz(request, lesson_id):
+    from django.http import JsonResponse
+    from .models import Lesson, Progress
+    import json
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+    
+    if request.user.role != 'student':
+        return JsonResponse({'success': False, 'error': 'Only students can submit quizzes'}, status=403)
+    
+    try:
+        lesson = Lesson.objects.get(id=lesson_id)
+        data = json.loads(request.body)
+        answers = data.get('answers', {})
+        
+        # Get quiz data
+        quiz_data = lesson.quiz_data
+        if not quiz_data:
+            return JsonResponse({'success': False, 'error': 'No quiz data found'}, status=404)
+        
+        # Calculate score
+        correct_count = 0
+        total_questions = len(quiz_data)
+        results = []
+        
+        for question in quiz_data:
+            question_id = str(question['question_id'])
+            user_answer = answers.get(question_id)
+            correct_answer = question['answer']
+            
+            is_correct = str(user_answer) == str(correct_answer)
+            if is_correct:
+                correct_count += 1
+            
+            results.append({
+                'question_id': question_id,
+                'correct': is_correct,
+                'user_answer': user_answer,
+                'correct_answer': correct_answer
+            })
+        
+        # Check if all answers are correct
+        all_correct = correct_count == total_questions
+        
+        # Update progress
+        progress, created = Progress.objects.get_or_create(
+            student=request.user,
+            lesson=lesson
+        )
+        progress.quiz_score = correct_count
+        progress.quiz_passed = all_correct
+        
+        # Check if lesson should be completed
+        has_code_test = lesson.code_test_data and len(lesson.code_test_data) > 0
+        if has_code_test:
+            # Need both quiz and code test to complete
+            if progress.quiz_passed and progress.code_test_passed:
+                progress.is_completed = True
+                # Award points
+                request.user.star_points += lesson.points_value
+                request.user.save()
+        else:
+            # Only quiz, complete if passed
+            if progress.quiz_passed:
+                progress.is_completed = True
+                # Award points
+                request.user.star_points += lesson.points_value
+                request.user.save()
+        
+        progress.save()
+        
+        # Unlock next lesson if current is completed
+        if progress.is_completed:
+            next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
+            if next_lesson:
+                next_progress, _ = Progress.objects.get_or_create(
+                    student=request.user,
+                    lesson=next_lesson
+                )
+                next_progress.is_unlocked = True
+                next_progress.save()
+        
+        return JsonResponse({
+            'success': True,
+            'score': correct_count,
+            'total': total_questions,
+            'passed': all_correct,
+            'results': results,
+            'lesson_completed': progress.is_completed,
+            'points_earned': lesson.points_value if progress.is_completed else 0
+        })
+        
+    except Lesson.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Lesson not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

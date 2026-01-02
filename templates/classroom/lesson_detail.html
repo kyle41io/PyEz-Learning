@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load static %}
+{% load curriculum_extras %}
 
 {% block content %}
 
@@ -104,21 +105,27 @@
         </div>
       </div>
 
-      {% elif category == 'video_mp4' %}
-      <!-- Video Player -->
+      {% elif category == 'youtube_id' %}
+      <!-- YouTube Video Player -->
       <div class="h-full flex flex-col">
         <div class="flex items-center space-x-3 mb-4">
-          <i class="fa-solid fa-video text-4xl text-red-500"></i>
+          <i class="fa-solid fa-video text-4xl text-blue-500"></i>
           <div>
             <h4 class="text-lg font-bold text-gray-800 dark:text-white">{% trans "Video Lecture" %}</h4>
             <p class="text-sm text-gray-500">{% trans "Watch and learn" %}</p>
           </div>
         </div>
         <div class="flex-grow flex items-center justify-center bg-black rounded-xl overflow-hidden">
-          <video controls class="w-full h-full" style="max-height: 600px;">
-            <source src="{{ category_content.url }}" type="video/mp4">
-            {% trans "Your browser does not support the video tag." %}
-          </video>
+          <div class="relative w-full" style="padding-bottom: 56.25%;">
+            <iframe 
+              src="https://www.youtube.com/embed/{{ category_content }}" 
+              title="{{ lesson.title }}" 
+              frameborder="0" referrerPolicy="origin"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowfullscreen
+              class="absolute top-0 left-0 w-full h-full">
+            </iframe>
+          </div>
         </div>
       </div>
 
@@ -126,46 +133,125 @@
       <!-- Quiz Test -->
       <div id="quiz-intro" class="h-full flex flex-col items-center justify-center">
         <div class="text-center max-w-2xl">
-          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fa-solid fa-clipboard-question text-4xl text-green-600"></i>
+          <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-clipboard-question text-4xl text-green-600 dark:text-green-400"></i>
           </div>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Quiz Test" %}</h3>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
-            {% trans "Test your understanding of this lesson with" %} <span class="font-bold text-primary">{{
-              category_content|length }}</span> {% trans "questions" %}.
+            {% trans "Test your understanding of this lesson with" %} <span class="font-bold text-primary">{{ category_content|length }}</span> {% trans "questions" %}.
           </p>
           <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div>
-                <p class="text-sm text-gray-500 mb-1">{% trans "Questions" %}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{% trans "Questions" %}</p>
                 <p class="text-2xl font-bold text-primary">{{ category_content|length }}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-500 mb-1">{% trans "Time Limit" %}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{% trans "Time Limit" %}</p>
                 <p class="text-2xl font-bold text-primary">{% trans "No Limit" %}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-500 mb-1">{% trans "Points" %}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{% trans "Points" %}</p>
                 <p class="text-2xl font-bold text-primary">{{ lesson.points_value }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></p>
               </div>
             </div>
           </div>
+          
+          {% if progress and progress.quiz_passed %}
+          <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6">
+            <div class="flex items-center justify-center text-green-700 dark:text-green-400">
+              <i class="fa-solid fa-circle-check text-2xl mr-3"></i>
+              <div class="text-left">
+                <p class="font-bold">{% trans "Quiz Passed!" %}</p>
+                <p class="text-sm">{% trans "Score:" %} {{ progress.quiz_score }}/{{ category_content|length }}</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          
           <button onclick="startQuiz()"
             class="px-8 py-4 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-bold text-lg shadow-lg">
             <i class="fa-solid fa-play mr-2"></i>
-            {% trans "Start Quiz" %}
+            {% if progress and progress.quiz_passed %}
+              {% trans "Retake Quiz" %}
+            {% else %}
+              {% trans "Start Quiz" %}
+            {% endif %}
           </button>
         </div>
       </div>
 
-      <div id="quiz-content" class="hidden h-full">
-        <div class="text-center py-12">
-          <p class="text-xl text-gray-600 dark:text-gray-400">{% trans "Quiz functionality will be implemented soon..."
-            %}</p>
-          <pre
-            class="text-left mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto max-h-96">{{ category_content|safe }}</pre>
+      <div id="quiz-content" class="hidden h-full overflow-y-auto">
+        <div class="max-w-4xl mx-auto">
+          <!-- Quiz Header -->
+          <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 mb-6 text-white shadow-lg">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-2xl font-bold mb-2">{{ lesson.title }} - {% trans "Quiz" %}</h3>
+                <p class="opacity-90">{% trans "Answer all questions to unlock the next lesson" %}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm opacity-90">{% trans "Progress" %}</p>
+                <p class="text-3xl font-bold"><span id="answered-count">0</span>/{{ category_content|length }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Questions -->
+          <div id="quiz-questions" class="space-y-6 mb-6">
+            {% for question in category_content %}
+            <div class="bg-surface rounded-xl shadow-lg p-6 border-2 border-gray-200 dark:border-gray-700 transition hover:border-primary" data-question-id="{{ question.question_id }}">
+              <div class="flex items-start mb-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                  <span class="text-primary font-bold">{{ forloop.counter }}</span>
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-lg font-bold text-gray-800 dark:text-white mb-4">{{ question.question }}</h4>
+                  <div class="space-y-3">
+                    {% for i in "1234" %}
+                      {% with option_key="option"|add:i %}
+                        {% with option_value=question|lookup:option_key %}
+                          {% if option_value %}
+                          <label class="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition hover:border-primary hover:bg-primary/5 group">
+                            <input type="radio" name="question_{{ question.question_id }}" value="{{ i }}" class="w-5 h-5 text-primary focus:ring-primary focus:ring-2">
+                            <span class="ml-3 text-gray-700 dark:text-gray-300 group-hover:text-primary font-medium">{{ option_value }}</span>
+                          </label>
+                          {% endif %}
+                        {% endwith %}
+                      {% endwith %}
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Submit Button -->
+          <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm p-6 rounded-xl">
+            <div class="flex items-center justify-between max-w-4xl mx-auto">
+              <button onclick="cancelQuiz()" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-bold">
+                <i class="fa-solid fa-times mr-2"></i>
+                {% trans "Cancel" %}
+              </button>
+              <button onclick="submitQuiz()" id="submit-quiz-btn" class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-bold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-paper-plane mr-2"></i>
+                {% trans "Submit Quiz" %}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Results Modal -->
+      <div id="quiz-results-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-surface rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div id="results-content" class="p-8">
+            <!-- Results will be inserted here -->
+          </div>
+        </div>
+      </div>
+
 
       {% elif category == 'code_test_data' %}
       <!-- Coding Test -->
@@ -176,8 +262,7 @@
           </div>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Coding Challenge" %}</h3>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
-            {% trans "Practice your coding skills with" %} <span class="font-bold text-primary">{{
-              category_content|length }}</span> {% trans "programming problems" %}.
+            {% trans "Practice your coding skills with" %} <span class="font-bold text-primary">{{ category_content|length }}</span> {% trans "programming problems" %}.
           </p>
           <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -245,7 +330,193 @@
   function startQuiz() {
     document.getElementById('quiz-intro').classList.add('hidden');
     document.getElementById('quiz-content').classList.remove('hidden');
+    updateAnsweredCount();
   }
+
+  function cancelQuiz() {
+    document.getElementById('quiz-intro').classList.remove('hidden');
+    document.getElementById('quiz-content').classList.add('hidden');
+  }
+
+  function updateAnsweredCount() {
+    const allQuestions = document.querySelectorAll('[data-question-id]');
+    let answeredCount = 0;
+    
+    allQuestions.forEach(questionDiv => {
+      const questionId = questionDiv.dataset.questionId;
+      const radioButtons = document.querySelectorAll(`input[name="question_${questionId}"]`);
+      const isAnswered = Array.from(radioButtons).some(radio => radio.checked);
+      if (isAnswered) answeredCount++;
+    });
+    
+    document.getElementById('answered-count').textContent = answeredCount;
+    
+    // Enable/disable submit button
+    const submitBtn = document.getElementById('submit-quiz-btn');
+    submitBtn.disabled = answeredCount !== allQuestions.length;
+  }
+
+  function submitQuiz() {
+    const allQuestions = document.querySelectorAll('[data-question-id]');
+    const answers = {};
+    
+    allQuestions.forEach(questionDiv => {
+      const questionId = questionDiv.dataset.questionId;
+      const radioButtons = document.querySelectorAll(`input[name="question_${questionId}"]:checked`);
+      if (radioButtons.length > 0) {
+        answers[questionId] = radioButtons[0].value;
+      }
+    });
+    
+    // Show loading state
+    const submitBtn = document.getElementById('submit-quiz-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>{% trans "Submitting..." %}';
+    
+    // Submit to server
+    fetch('{% url "submit_quiz" lesson.id %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({ answers: answers })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showResults(data);
+      } else {
+        alert('Error: ' + data.error);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit Quiz" %}';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while submitting the quiz.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit Quiz" %}';
+    });
+  }
+
+  function showResults(data) {
+    const modal = document.getElementById('quiz-results-modal');
+    const resultsContent = document.getElementById('results-content');
+    
+    const passedClass = data.passed ? 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-400';
+    const passedIcon = data.passed ? 'fa-circle-check' : 'fa-circle-xmark';
+    const passedText = data.passed ? '{% trans "Congratulations! You passed!" %}' : '{% trans "Quiz Not Passed" %}';
+    
+    let resultsHTML = `
+      <div class="text-center mb-8">
+        <div class="w-24 h-24 ${passedClass} rounded-full flex items-center justify-center mx-auto mb-4 border-4">
+          <i class="fa-solid ${passedIcon} text-5xl"></i>
+        </div>
+        <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">${passedText}</h3>
+        <p class="text-xl text-gray-600 dark:text-gray-400">
+          {% trans "Your Score:" %} <span class="font-bold text-primary">${data.score}/${data.total}</span>
+        </p>
+      </div>
+    `;
+    
+    if (data.passed) {
+      resultsHTML += `
+        <div class="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-6 mb-6">
+          <div class="flex items-center text-green-700 dark:text-green-400">
+            <i class="fa-solid fa-star text-3xl mr-4"></i>
+            <div>
+              <p class="font-bold text-lg">{% trans "Points Earned!" %}</p>
+              <p class="text-2xl font-bold">${data.points_earned} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      if (data.lesson_completed) {
+        resultsHTML += `
+          <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-6">
+            <div class="flex items-center text-blue-700 dark:text-blue-400">
+              <i class="fa-solid fa-unlock text-3xl mr-4"></i>
+              <div>
+                <p class="font-bold text-lg">{% trans "Lesson Completed!" %}</p>
+                <p class="text-sm">{% trans "Next lesson unlocked" %}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      resultsHTML += `
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-6">
+          <p class="text-yellow-700 dark:text-yellow-400 text-center">
+            <i class="fa-solid fa-lightbulb mr-2"></i>
+            {% trans "Review the lesson material and try again to unlock the next lesson." %}
+          </p>
+        </div>
+      `;
+    }
+    
+    resultsHTML += `
+      <div class="flex gap-4">
+        <button onclick="closeResults()" class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-bold">
+          <i class="fa-solid fa-times mr-2"></i>
+          {% trans "Close" %}
+        </button>
+        ${!data.passed ? `
+          <button onclick="retakeQuiz()" class="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-bold">
+            <i class="fa-solid fa-rotate-right mr-2"></i>
+            {% trans "Try Again" %}
+          </button>
+        ` : `
+          <a href="{% url 'curriculum' %}" class="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-bold text-center">
+            <i class="fa-solid fa-book mr-2"></i>
+            {% trans "Back to Curriculum" %}
+          </a>
+        `}
+      </div>
+    `;
+    
+    resultsContent.innerHTML = resultsHTML;
+    modal.classList.remove('hidden');
+  }
+
+  function closeResults() {
+    const modal = document.getElementById('quiz-results-modal');
+    modal.classList.add('hidden');
+    location.reload();
+  }
+
+  function retakeQuiz() {
+    // Clear all answers
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => radio.checked = false);
+    
+    // Reset submit button
+    const submitBtn = document.getElementById('submit-quiz-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit Quiz" %}';
+    
+    // Close modal
+    const modal = document.getElementById('quiz-results-modal');
+    modal.classList.add('hidden');
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Update count
+    updateAnsweredCount();
+  }
+
+  // Add event listeners to radio buttons
+  {% if category == 'quiz_data' %}
+  document.addEventListener('DOMContentLoaded', function() {
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+      radio.addEventListener('change', updateAnsweredCount);
+    });
+  });
+  {% endif %}
 
   function startCoding() {
     document.getElementById('code-intro').classList.add('hidden');

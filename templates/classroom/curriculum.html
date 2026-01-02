@@ -8,13 +8,187 @@
   <div class="flex items-center justify-between mb-6">
     <div>
       <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white">{% trans "Python Programming Curriculum" %}</h2>
+      {% if is_student %}
+      <p class="text-gray-500 mt-1">{% trans "Total Lessons:" %} <span class="font-bold text-primary">{{ lessons_data|length }}</span></p>
+      {% else %}
       <p class="text-gray-500 mt-1">{% trans "Total Lessons:" %} <span class="font-bold text-primary">{{ lessons|length }}</span></p>
+      {% endif %}
     </div>
   </div>
 
   <!-- Lessons Accordion -->
   <div class="space-y-4">
-    {% for lesson in lessons %}
+    {% if is_student %}
+      {% for item in lessons_data %}
+      {% with lesson=item.lesson progress=item.progress is_locked=item.is_locked %}
+    <div class="bg-surface rounded-2xl shadow-lg overflow-hidden border-l-4 {% if is_locked %}border-gray-400 opacity-60{% else %}border-primary{% endif %}">
+      <!-- Lesson Header (Clickable) -->
+      <button onclick="{% if is_locked %}return false;{% else %}toggleLesson({{ lesson.id }}){% endif %}"
+        class="w-full px-6 py-4 flex items-center justify-between {% if not is_locked %}hover:bg-gray-50 dark:hover:bg-gray-800{% endif %} transition {% if is_locked %}cursor-not-allowed{% endif %}">
+        <div class="flex items-center space-x-4">
+          <div
+            class="w-12 h-12 rounded-full {% if is_locked %}bg-gray-400{% else %}bg-primary{% endif %} text-white flex items-center justify-center font-bold text-lg shadow-lg relative">
+            {% if is_locked %}
+              <i class="fa-solid fa-lock"></i>
+            {% else %}
+              {{ lesson.order }}
+            {% endif %}
+            {% if progress.is_completed %}
+              <div class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-check text-xs text-white"></i>
+              </div>
+            {% endif %}
+          </div>
+          <div class="text-left">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">{{ lesson.title }}</h3>
+            <p class="text-sm text-gray-500">
+              {% if is_locked %}
+                <i class="fa-solid fa-lock mr-1"></i> {% trans "Locked" %}
+              {% elif progress.is_completed %}
+                <i class="fa-solid fa-check-circle text-green-500 mr-1"></i> {% trans "Completed" %}
+              {% else %}
+                <i class="fa-solid fa-star text-yellow-400"></i> {{ lesson.points_value }} {% trans "stars" %}
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <!-- Category indicators -->
+          <div class="flex space-x-2">
+            {% if lesson.pdf_file %}
+            <span class="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">
+              <i class="fa-solid fa-file-pdf"></i> PDF
+            </span>
+            {% endif %}
+            {% if lesson.youtube_id %}
+            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold">
+              <i class="fa-solid fa-video"></i> Video
+            </span>
+            {% endif %}
+            {% if lesson.quiz_data %}
+            <span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-bold">
+              <i class="fa-solid fa-clipboard-question"></i> Test
+              {% if progress.quiz_passed %}
+                <i class="fa-solid fa-check ml-1"></i>
+              {% endif %}
+            </span>
+            {% endif %}
+            {% if lesson.code_test_data %}
+            <span class="px-2 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-bold">
+              <i class="fa-solid fa-code"></i> Code
+              {% if progress.code_test_passed %}
+                <i class="fa-solid fa-check ml-1"></i>
+              {% endif %}
+            </span>
+            {% endif %}
+            {% if lesson.game_html_name %}
+            <span class="px-2 py-1 bg-yellow-100 text-yellow-600 rounded-full text-xs font-bold">
+              <i class="fa-solid fa-gamepad"></i> Game
+            </span>
+            {% endif %}
+          </div>
+          {% if not is_locked %}
+          <i id="chevron-{{ lesson.id }}"
+            class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+          {% endif %}
+        </div>
+      </button>
+
+      <!-- Lesson Content (Expandable) -->
+      {% if not is_locked %}
+      <div id="lesson-{{ lesson.id }}" class="hidden border-t border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            {% if lesson.pdf_file %}
+            <!-- Document Card -->
+            <a href="{% url 'lesson_detail_category' lesson.id 'pdf_file' %}"
+              class="group bg-surface rounded-xl p-4 border-2 border-red-200 hover:border-red-400 transition shadow-sm hover:shadow-md">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                  <i class="fa-solid fa-file-pdf text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-gray-800 dark:text-white">{{ lesson.title }}</h4>
+                  <p class="text-xs text-gray-500">PDF</p>
+                </div>
+              </div>
+            </a>
+            {% endif %}
+
+            {% if lesson.youtube_id %}
+            <!-- Video Card -->
+            <a href="{% url 'lesson_detail_category' lesson.id 'youtube_id' %}"
+              class="group bg-surface rounded-xl p-4 border-2 border-blue-200 hover:border-blue-400 transition shadow-sm hover:shadow-md">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <i class="fa-solid fa-video text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-gray-800 dark:text-white">{% trans "Video Lecture" %}</h4>
+                  <p class="text-xs text-gray-500">YouTube</p>
+                </div>
+              </div>
+            </a>
+            {% endif %}
+
+            {% if lesson.quiz_data %}
+            <!-- Quiz Card -->
+            <a href="{% url 'lesson_detail_category' lesson.id 'quiz_data' %}"
+              class="group bg-surface rounded-xl p-4 border-2 border-green-200 hover:border-green-400 transition shadow-sm hover:shadow-md">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                  <i class="fa-solid fa-clipboard-question text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-gray-800 dark:text-white">{% trans "Quiz Test" %}</h4>
+                  <p class="text-xs text-gray-500">{{ lesson.quiz_data|length }} {% trans "questions" %}</p>
+                </div>
+              </div>
+            </a>
+            {% endif %}
+
+            {% if lesson.code_test_data %}
+            <!-- Coding Test Card -->
+            <a href="{% url 'lesson_detail_category' lesson.id 'code_test_data' %}"
+              class="group bg-surface rounded-xl p-4 border-2 border-purple-200 hover:border-purple-400 transition shadow-sm hover:shadow-md">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                  <i class="fa-solid fa-code text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-gray-800 dark:text-white">{% trans "Coding Challenge" %}</h4>
+                  <p class="text-xs text-gray-500">{{ lesson.code_test_data|length }} {% trans "problems" %}</p>
+                </div>
+              </div>
+            </a>
+            {% endif %}
+
+            {% if lesson.game_html_name %}
+            <!-- Game Card -->
+            <a href="{% url 'lesson_detail_category' lesson.id 'game_html_name' %}"
+              class="group bg-surface rounded-xl p-4 border-2 border-yellow-200 hover:border-yellow-400 transition shadow-sm hover:shadow-md">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">
+                  <i class="fa-solid fa-gamepad text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-gray-800 dark:text-white">{% trans "Interactive Game" %}</h4>
+                  <p class="text-xs text-gray-500">{{ lesson.game_html_name }}</p>
+                </div>
+              </div>
+            </a>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+      {% endwith %}
+      {% endfor %}
+    {% else %}
+      {% for lesson in lessons %}
     <div class="bg-surface rounded-2xl shadow-lg overflow-hidden border-l-4 border-primary">
       <!-- Lesson Header (Clickable) -->
       <button onclick="toggleLesson({{ lesson.id }})"
@@ -39,8 +213,8 @@
               <i class="fa-solid fa-file-pdf"></i> PDF
             </span>
             {% endif %}
-            {% if lesson.video_mp4 %}
-            <span class="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">
+            {% if lesson.youtube_id %}
+            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold">
               <i class="fa-solid fa-video"></i> Video
             </span>
             {% endif %}
@@ -87,17 +261,17 @@
             </a>
             {% endif %}
 
-            {% if lesson.video_mp4 %}
+            {% if lesson.youtube_id %}
             <!-- Video Card -->
-            <a href="{% url 'lesson_detail_category' lesson.id 'video_mp4' %}"
-              class="group bg-surface rounded-xl p-4 border-2 border-red-200 hover:border-red-400 transition shadow-sm hover:shadow-md">
+            <a href="{% url 'lesson_detail_category' lesson.id 'youtube_id' %}"
+              class="group bg-surface rounded-xl p-4 border-2 border-blue-200 hover:border-blue-400 transition shadow-sm hover:shadow-md">
               <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
                   <i class="fa-solid fa-video text-xl"></i>
                 </div>
                 <div>
                   <h4 class="font-bold text-sm text-gray-800 dark:text-white">{% trans "Video Lecture" %}</h4>
-                  <p class="text-xs text-gray-500">MP4</p>
+                  <p class="text-xs text-gray-500">YouTube</p>
                 </div>
               </div>
             </a>
@@ -164,6 +338,7 @@
       </div>
     </div>
     {% endfor %}
+    {% endif %}
   </div>
 </div>
 

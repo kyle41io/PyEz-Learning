@@ -183,8 +183,7 @@
                         data-user-username="{{ student.username }}" data-user-gender="{{student.gender}}" data-user-email="{{ student.email }}"
                         data-user-stars="{{ student.star_points }}" data-user-role="{{ student.get_role_display }}"
                         data-user-class="{{ student.student_class }}" data-user-bio="{{ student.bio }}" data-user-joined="{{ student.created_at|date:'F j, Y' }}"
-                        data-user-profile-pic="{% if student.profile_picture %}{{ student.profile_picture.url }}{% endif %}"
-                        data-user-progress="{{ student.progress_percent }}">
+                        data-user-profile-pic="{% if student.profile_picture %}{{ student.profile_picture.url }}{% endif %}" data-user-progress="{{ student.progress_percent }}">
                         {% if student.profile_picture %}
                         <img src="{{ student.profile_picture.url }}" alt="{{ student.first_name }}"
                             class="w-10 h-10 rounded-full object-cover border-2 border-primary shadow-lg">
