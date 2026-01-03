@@ -391,6 +391,16 @@ def my_class(request):
         'name_filter': name_filter,
         'progress_filter': progress_filter,
         'stars_filter': stars_filter,
+        'progress_options': [
+            ('', 'All Progress'),
+            ('high', '≥ 60%'),
+            ('low', '< 60%'),
+        ],
+        'stars_options': [
+            ('', 'All Stars'),
+            ('high', '≥ 30 Stars'),
+            ('low', '< 30 Stars'),
+        ],
     }
     
     return render(request, 'classroom/my_class.html', context)
@@ -512,11 +522,13 @@ def class_detail(request, class_name):
     
     # Get all unique classes for filter dropdown (only for 'all' view)
     all_classes = []
+    class_options = []
     if class_name == 'all':
         all_classes = User.objects.filter(
             role='student', 
             student_class__isnull=False
         ).values_list('student_class', flat=True).distinct().order_by('student_class')
+        class_options = [('', 'All Classes'), ('unassigned', 'Unassigned')] + [(c, c) for c in all_classes]
     
     context = {
         'students': students_data,
@@ -528,6 +540,22 @@ def class_detail(request, class_name):
         'status_filter': status_filter,
         'all_classes': all_classes,
         'total_students': len(students_data),
+        'progress_options': [
+            ('', 'All Progress'),
+            ('high', '≥ 60%'),
+            ('low', '< 60%'),
+        ],
+        'stars_options': [
+            ('', 'All Stars'),
+            ('high', '≥ 30 Stars'),
+            ('low', '< 30 Stars'),
+        ],
+        'class_options': class_options,
+        'status_options': [
+            ('', 'All Status'),
+            ('active', 'Active'),
+            ('inactive', 'Inactive'),
+        ],
     }
     
     return render(request, 'classroom/class_detail.html', context)

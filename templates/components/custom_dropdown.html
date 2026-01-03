@@ -1,0 +1,66 @@
+{% load i18n %}
+<!-- 
+  Reusable Custom Dropdown Component
+  
+  Usage:
+  {% include 'components/custom_dropdown.html' with 
+    name='field_name'
+    value='current_value'
+    options=options_list
+    label='Field Label'
+    placeholder='Select...'
+  %}
+  
+  Parameters:
+  - name: Form field name (required)
+  - value: Currently selected value (optional)
+  - options: List of tuples [(value, display), ...] (required)
+  - label: Label text (optional)
+  - placeholder: Placeholder when nothing selected (optional, default: "Select an option")
+-->
+
+{% if not dropdown_id %}
+  {% comment %}Auto-generate unique ID if not provided{% endcomment %}
+  {% with dropdown_id=name|slugify|add:"-dropdown" %}
+    {% include 'components/custom_dropdown.html' %}
+  {% endwith %}
+{% else %}
+
+<div class="custom-dropdown relative" data-dropdown-id="{{ dropdown_id }}">
+  {% if label %}
+  <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+    {{ label }}
+  </label>
+  {% endif %}
+  
+  <input type="hidden" name="{{ name }}" value="{{ value|default:'' }}" id="{{ dropdown_id }}-input">
+  
+  <button type="button" class="custom-dropdown-btn w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 text-left flex items-center justify-between bg-white dark:bg-gray-800 hover:border-primary transition">
+    <span class="dropdown-text {% if not value %}text-gray-500 dark:text-gray-400{% else %}text-gray-900 dark:text-white{% endif %}">
+      {% if value %}
+        {% for opt_val, opt_label in options %}
+          {% if opt_val|stringformat:"s" == value|stringformat:"s" %}{{ opt_label }}{% endif %}
+        {% endfor %}
+      {% else %}
+        {{ placeholder|default:"Select an option" }}
+      {% endif %}
+    </span>
+    <svg class="w-5 h-5 text-gray-400 transition-transform dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+    </svg>
+  </button>
+  
+  <div class="custom-dropdown-menu hidden absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+    <ul class="py-2">
+      {% for opt_val, opt_label in options %}
+      <li>
+        <button type="button" class="dropdown-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition {% if opt_val|stringformat:'s' == value|stringformat:'s' %}bg-primary/10 text-primary font-bold{% endif %}" data-value="{{ opt_val }}">
+          {{ opt_label }}
+        </button>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% endif %}

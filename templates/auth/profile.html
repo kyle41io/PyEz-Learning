@@ -112,27 +112,17 @@
 
           <!-- Class (Students Only) -->
           {% if user.role == 'student' %}
-          <div>
-            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-              {% trans "Class" %}
-            </label>
-            {{ form.student_class }}
-            {% if form.student_class.errors %}
-            <p class="text-red-500 text-xs mt-1">{{ form.student_class.errors.0 }}</p>
-            {% endif %}
-          </div>
+          {% include 'components/custom_dropdown.html' with dropdown_id='student-class' name='student_class' value=form.student_class.value label=_('Class') options=class_options %}
+          {% if form.student_class.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.student_class.errors.0 }}</p>
+          {% endif %}
           {% endif %}
 
           <!-- Gender -->
-          <div>
-            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-              {% trans "Gender" %}
-            </label>
-            {{ form.gender }}
-            {% if form.gender.errors %}
-            <p class="text-red-500 text-xs mt-1">{{ form.gender.errors.0 }}</p>
-            {% endif %}
-          </div>
+          {% include 'components/custom_dropdown.html' with dropdown_id='gender' name='gender' value=form.gender.value label=_('Gender') options=gender_options %}
+          {% if form.gender.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.gender.errors.0 }}</p>
+          {% endif %}
 
           <!-- Profile Picture URL -->
           <div>

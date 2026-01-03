@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="light">
 
@@ -122,25 +123,15 @@
           {% endif %}
         </div>
 
-        <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
-            {% trans "Class" %}
-          </label>
-          {{ form.student_class }}
-          {% if form.student_class.errors %}
-          <p class="text-red-500 text-xs mt-1">{{ form.student_class.errors.0 }}</p>
-          {% endif %}
-        </div>
+        {% include 'components/custom_dropdown.html' with dropdown_id='student-class-signup' name='student_class' value=form.student_class.value label=_('Class') options=class_options %}
+        {% if form.student_class.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ form.student_class.errors.0 }}</p>
+        {% endif %}
 
-        <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
-            {% trans "Gender" %}
-          </label>
-          {{ form.gender }}
-          {% if form.gender.errors %}
-          <p class="text-red-500 text-xs mt-1">{{ form.gender.errors.0 }}</p>
-          {% endif %}
-        </div>
+        {% include 'components/custom_dropdown.html' with dropdown_id='gender-signup' name='gender' value=form.gender.value label=_('Gender') options=gender_options %}
+        {% if form.gender.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ form.gender.errors.0 }}</p>
+        {% endif %}
 
         <div>
           <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
@@ -205,6 +196,7 @@
       document.documentElement.style.setProperty('--primary-color', localStorage.getItem('primaryColor'));
     }
   </script>
+  <script src="{% static 'js/custom_dropdown.js' %}"></script>
 </body>
 
 </html>

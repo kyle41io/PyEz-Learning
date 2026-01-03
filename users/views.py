@@ -73,7 +73,12 @@ def signup(request):
     else:
         form = SignUpForm()
     
-    return render(request, 'auth/signup.html', {'form': form})
+    context = {
+        'form': form,
+        'class_options': [('', 'Select your class')] + list(User.CLASS_CHOICES),
+        'gender_options': [('', 'Select gender')] + list(User.GENDER_CHOICES),
+    }
+    return render(request, 'auth/signup.html', context)
 
 
 @login_required(login_url='signin')
@@ -164,5 +169,7 @@ def profile(request):
     context = {
         'form': form,
         'user': user,
+        'class_options': [('', 'Select your class')] + list(user.CLASS_CHOICES),
+        'gender_options': [('', 'Select gender')] + list(user.GENDER_CHOICES),
     }
     return render(request, 'auth/profile.html', context)

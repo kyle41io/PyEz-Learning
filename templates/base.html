@@ -217,6 +217,12 @@
     </div>
   </footer>
 
+  <!-- User Profile Popup Component -->
+  {% include 'components/user_profile_popup.html' %}
+  
+  <script src="{% static 'js/user_profile_popup.js' %}"></script>
+  <script src="{% static 'js/custom_dropdown.js' %}"></script>
+
   <script>
     function toggleDarkMode() {
       const html = document.documentElement;
