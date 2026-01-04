@@ -24,14 +24,20 @@ class Command(BaseCommand):
             return
         
         # Get or create the Site
-        try:
-            site = Site.objects.get(id=1)
-            site.domain = 'localhost:8000'
-            site.name = 'PyEz Learning'
-            site.save()
-            self.stdout.write(self.style.SUCCESS(f'Updated site: {site.domain}'))
-        except Site.DoesNotExist:
-            site = Site.objects.create(id=1, domain='localhost:8000', name='PyEz Learning')
+        site, created = Site.objects.get_or_create(
+            id=1,
+            defaults={'domain': 'localhost:8000', 'name': 'PyEz Learning'}
+        )
+        if not created:
+            # Update if it exists but has different values
+            if site.domain != 'localhost:8000' or site.name != 'PyEz Learning':
+                site.domain = 'localhost:8000'
+                site.name = 'PyEz Learning'
+                site.save()
+                self.stdout.write(self.style.SUCCESS(f'Updated site: {site.domain}'))
+            else:
+                self.stdout.write(self.style.SUCCESS(f'Site already configured: {site.domain}'))
+        else:
             self.stdout.write(self.style.SUCCESS(f'Created site: {site.domain}'))
         
         # Count and delete existing Google OAuth apps
