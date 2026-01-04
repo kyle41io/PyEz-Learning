@@ -40,8 +40,6 @@ def student_dashboard(request):
         user = request.user
         
         # Get real active exams based on user role
-        from django.db.models import Q
-        
         if user.is_teacher:
             # For teachers/admins: show all exams that are not manually ended AND within schedule
             all_not_ended = ActiveExam.objects.filter(is_ended=False).order_by('-created_at')
@@ -62,82 +60,82 @@ def student_dashboard(request):
             
             # Filter by time and access
             accessible_exams = []
-        for exam in all_active:
-            if exam.is_active() and exam.can_student_access(user):
-                accessible_exams.append(exam)
-        
-        active_exams = accessible_exams
+            for exam in all_active:
+                if exam.is_active() and exam.can_student_access(user):
+                    accessible_exams.append(exam)
+            
+            active_exams = accessible_exams
 
-    from .models import Lesson, Progress
-    from users.models import User
-    
-    # Get real leaderboard from database
-    leaderboard_students = User.objects.filter(role='student').order_by('-star_points', 'first_name')[:5]
-    leaderboard = list(leaderboard_students) if leaderboard_students.exists() else []
-    
-    # For Teachers: Different data
-    if user.is_teacher:
-        total_lessons = Lesson.objects.count()
+        from .models import Lesson, Progress
+        from users.models import User
         
-        # Get all students
-        students = User.objects.filter(role='student')
-        total_students = students.count()
+        # Get real leaderboard from database
+        leaderboard_students = User.objects.filter(role='student').order_by('-star_points', 'first_name')[:5]
+        leaderboard = list(leaderboard_students) if leaderboard_students.exists() else []
         
-        # Calculate average progress
-        student_progress = []
-        students_finished = 0
-        
-        for student in students:
-            completed = Progress.objects.filter(student=student, is_completed=True).count()
-            if total_lessons > 0:
-                percent = int((completed / total_lessons) * 100)
-                student_progress.append(percent)
-                if percent == 100:
-                    students_finished += 1
-        
-        avg_progress = int(sum(student_progress) / len(student_progress)) if student_progress else 0
-        
-        # Get teacher's exams with submission counts
-        my_exams = ActiveExam.objects.filter(teacher=user).annotate(
-            submission_count=Count('submissions')
-        ).order_by('-created_at')[:3]
-        
-        # Format for template
-        my_exams_formatted = []
-        for exam in my_exams:
-            my_exams_formatted.append({
-                'title': exam.title,
-                'active': exam.is_active(),
-                'submissions': exam.submission_count
-            })
-        
-        context = {
-            'is_teacher': True,
-            'avg_progress': avg_progress,
-            'students_finished': students_finished,
-            'total_students': total_students,
-            'my_exams': my_exams_formatted,
-            'active_exams': active_exams,
-            'leaderboard': leaderboard,
-        }
-    else:
-        # For Students: Original data
-        user_stars = user.star_points or 0
-        total_lessons = Lesson.objects.count()
-        completed_lessons = Progress.objects.filter(student=user, is_completed=True).count()
-        
-        # Use progress from model (handle None)
-        progress_percent = user.progress_percent if user.progress_percent is not None else 0
+        # For Teachers: Different data
+        if user.is_teacher:
+            total_lessons = Lesson.objects.count()
+            
+            # Get all students
+            students = User.objects.filter(role='student')
+            total_students = students.count()
+            
+            # Calculate average progress
+            student_progress = []
+            students_finished = 0
+            
+            for student in students:
+                completed = Progress.objects.filter(student=student, is_completed=True).count()
+                if total_lessons > 0:
+                    percent = int((completed / total_lessons) * 100)
+                    student_progress.append(percent)
+                    if percent == 100:
+                        students_finished += 1
+            
+            avg_progress = int(sum(student_progress) / len(student_progress)) if student_progress else 0
+            
+            # Get teacher's exams with submission counts
+            my_exams = ActiveExam.objects.filter(teacher=user).annotate(
+                submission_count=Count('submissions')
+            ).order_by('-created_at')[:3]
+            
+            # Format for template
+            my_exams_formatted = []
+            for exam in my_exams:
+                my_exams_formatted.append({
+                    'title': exam.title,
+                    'active': exam.is_active(),
+                    'submissions': exam.submission_count
+                })
+            
+            context = {
+                'is_teacher': True,
+                'avg_progress': avg_progress,
+                'students_finished': students_finished,
+                'total_students': total_students,
+                'my_exams': my_exams_formatted,
+                'active_exams': active_exams,
+                'leaderboard': leaderboard,
+            }
+        else:
+            # For Students: Original data
+            user_stars = user.star_points or 0
+            total_lessons = Lesson.objects.count()
+            completed_lessons = Progress.objects.filter(student=user, is_completed=True).count()
+            
+            # Use progress from model (handle None)
+            progress_percent = user.progress_percent if user.progress_percent is not None else 0
 
-        context = {
-            'is_teacher': False,
-            'user_stars': user_stars,
-            'progress_percent': progress_percent,
-            'completed_lessons': completed_lessons,
-            'total_lessons': total_lessons,
-            'active_exams': active_exams,
-            'leaderboard': leaderboard,
-        }
+            context = {
+                'is_teacher': False,
+                'user_stars': user_stars,
+                'progress_percent': progress_percent,
+                'completed_lessons': completed_lessons,
+                'total_lessons': total_lessons,
+                'active_exams': active_exams,
+                'leaderboard': leaderboard,
+            }
         
         return render(request, 'classroom/dashboard.html', context)
     
