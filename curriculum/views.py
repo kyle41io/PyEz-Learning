@@ -118,12 +118,12 @@ def student_dashboard(request):
         }
     else:
         # For Students: Original data
-        user_stars = user.star_points
+        user_stars = user.star_points or 0
         total_lessons = Lesson.objects.count()
         completed_lessons = Progress.objects.filter(student=user, is_completed=True).count()
         
-        # Use progress from model
-        progress_percent = user.progress_percent
+        # Use progress from model (handle None)
+        progress_percent = user.progress_percent if user.progress_percent is not None else 0
 
         context = {
             'is_teacher': False,
