@@ -1,1 +1,1 @@
-web: python manage.py migrate && python manage.py update_site_domain ${RENDER_EXTERNAL_HOSTNAME} && python manage.py collectstatic --noinput && gunicorn pyez_learning.wsgi --log-file -
+web: python manage.py migrate && python manage.py update_site_domain ${RENDER_EXTERNAL_HOSTNAME} && python manage.py setup_google_oauth_credentials && python manage.py collectstatic --noinput && gunicorn pyez_learning.wsgi --log-file -
