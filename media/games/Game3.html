@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyEz Final Challenge - Code Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            font-family: 'Nunito', sans-serif; 
+        }
+        
+        #game-container { 
+            position: relative; 
+            width: 100vw; 
+            height: 100vh; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+        
+        .hidden { display: none !important; }
+        
+        .code-font { 
+            font-family: 'Fira Code', monospace; 
+        }
+        
+        .code-editor {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
+        .line-number {
+            display: inline-block;
+            width: 30px;
+            color: #858585;
+            text-align: right;
+            margin-right: 16px;
+            user-select: none;
+        }
+        
+        .code-line {
+            display: block;
+        }
+        
+        .code-input {
+            background: #2d2d30;
+            border: 2px solid #007acc;
+            color: #4ec9b0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            min-width: 100px;
+            outline: none;
+        }
+        
+        .code-input:focus {
+            border-color: #4ec9b0;
+            box-shadow: 0 0 0 2px rgba(78, 201, 176, 0.2);
+        }
+        
+        .code-input.correct {
+            border-color: #4ec9b0;
+            background: rgba(78, 201, 176, 0.1);
+        }
+        
+        .code-input.incorrect {
+            border-color: #f48771;
+            background: rgba(244, 135, 113, 0.1);
+        }
+        
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .number { color: #b5cea8; }
+        .function { color: #dcdcaa; }
+        .comment { color: #6a9955; font-style: italic; }
+        .operator { color: #d4d4d4; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 12px;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            transition: width 0.3s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .shake {
+            animation: shake 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- START SCREEN -->
+    <div id="start-screen" class="game-overlay">
+        <div class="bg-gray-900/90 border-2 border-purple-500/50 p-12 rounded-3xl shadow-2xl text-center max-w-2xl backdrop-blur-xl">
+            <div class="text-6xl mb-6">🏆</div>
+            <h1 class="text-5xl font-black text-white mb-4">
+                <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    PyEz Final Challenge
+                </span>
+            </h1>
+            <h2 class="text-2xl font-bold text-purple-300 mb-6">Code Master Edition</h2>
+            <p class="text-gray-300 text-lg mb-8 leading-relaxed">
+                Đây là thử thách cuối cùng! Hoàn thành các đoạn code Python bằng cách điền vào chỗ trống.<br>
+                <span class="text-purple-400 font-bold">15 bài tập</span> từ tất cả các bài học bạn đã học.
+            </p>
+            <div class="grid grid-cols-3 gap-4 mb-8 text-center">
+                <div class="bg-purple-500/20 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-purple-300">15</div>
+                    <div class="text-sm text-gray-400">Challenges</div>
+                </div>
+                <div class="bg-pink-500/20 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-pink-300">⏱️</div>
+                    <div class="text-sm text-gray-400">No Limit</div>
+                </div>
+                <div class="bg-blue-500/20 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-blue-300">100★</div>
+                    <div class="text-sm text-gray-400">Max Points</div>
+                </div>
+            </div>
+            <button onclick="startGame()" class="btn-primary text-xl px-12 py-4">
+                <span class="mr-2">🚀</span> Bắt Đầu Thử Thách
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="hidden w-full h-full overflow-hidden">
+        <div class="w-full h-full flex flex-col p-6">
+            <!-- Header -->
+            <div class="bg-gray-900/90 rounded-2xl p-6 mb-6 backdrop-blur-xl border border-purple-500/30">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">
+                            Challenge <span id="current-challenge">1</span> / 15
+                        </h3>
+                        <p class="text-gray-400">Player: <span class="text-purple-400 font-bold">[[ request.user.username|default:'Guest' ]]</span></p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-4xl font-bold text-white mb-1">
+                            <span id="score">0</span> / 100
+                        </div>
+                        <div class="text-sm text-gray-400">Điểm số</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Challenge Area -->
+            <div class="flex-grow bg-gray-900/90 rounded-2xl p-8 overflow-auto backdrop-blur-xl border border-purple-500/30">
+                <div id="challenge-container" class="max-w-4xl mx-auto"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="mt-6 flex justify-between items-center">
+                <button onclick="showHint()" class="btn-secondary">
+                    💡 Gợi Ý
+                </button>
+                <div class="flex gap-4">
+                    <button onclick="skipChallenge()" class="btn-secondary">
+                        ⏭️ Bỏ Qua
+                    </button>
+                    <button onclick="checkAnswer()" class="btn-primary">
+                        ✓ Kiểm Tra
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="results-screen" class="game-overlay hidden">
+        <div class="bg-gray-900/90 border-2 border-purple-500/50 p-12 rounded-3xl shadow-2xl text-center max-w-2xl backdrop-blur-xl">
+            <div id="results-icon" class="text-8xl mb-6">🎉</div>
+            <h2 id="results-title" class="text-5xl font-black text-white mb-4"></h2>
+            <div class="text-6xl font-bold mb-6">
+                <span id="final-score" class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">0</span>
+                <span class="text-gray-400"> / 100</span>
+            </div>
+            <div id="results-message" class="text-xl text-gray-300 mb-8"></div>
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-green-500/20 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-green-300" id="correct-count">0</div>
+                    <div class="text-sm text-gray-400">Đúng</div>
+                </div>
+                <div class="bg-red-500/20 rounded-lg p-4">
+                    <div class="text-3xl font-bold text-red-300" id="incorrect-count">0</div>
+                    <div class="text-sm text-gray-400">Sai</div>
+                </div>
+            </div>
+            <button onclick="restartGame()" class="btn-primary text-xl px-12 py-4">
+                🔄 Thử Lại
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const playerName = "[[ request.user.username|default:'guest' ]]";
+    
+    // Comprehensive challenges covering all 17 lessons
+    const CHALLENGES = [
+        // Lesson 1-3: Basics
+        {
+            title: "Print và Biến Cơ Bản",
+            description: "Hoàn thành đoạn code để in ra tên và tuổi",
+            code: `# In ra thông tin cá nhân
+name = "PyEz Learner"
+age = 20
+[[print]](f"Tên tôi là {name} và tôi [[{age]]} tuổi")`,
+            blanks: ["print", "age"],
+            hint: "Hàm in ra màn hình là print(), và biến tuổi đã được định nghĩa ở trên"
+        },
+        {
+            title: "Kiểu Dữ Liệu",
+            description: "Chuyển đổi kiểu dữ liệu đúng cách",
+            code: `# Chuyển đổi string thành số
+text = "123"
+number = [[int]](text)
+result = number + 10
+print(result)  # Kết quả: [[133]]`,
+            blanks: ["int", "133"],
+            hint: "Dùng int() để chuyển string thành số nguyên. 123 + 10 = ?"
+        },
+        {
+            title: "Điều Kiện If-Else",
+            description: "Viết câu lệnh kiểm tra số chẵn lẻ",
+            code: `# Kiểm tra số chẵn hay lẻ
+num = 15
+[[if]] num % 2 == 0:
+    print("Số chẵn")
+[[else]]:
+    print("Số lẻ")`,
+            blanks: ["if", "else"],
+            hint: "Cấu trúc điều kiện: if ... else ..."
+        },
+        {
+            title: "Vòng Lặp For",
+            description: "Lặp qua danh sách và in ra từng phần tử",
+            code: `# In ra các số từ 1 đến 5
+[[for]] i [[in]] range(1, 6):
+    print(i)`,
+            blanks: ["for", "in"],
+            hint: "Cú pháp: for biến in range(...)"
+        },
+        {
+            title: "Vòng Lặp While",
+            description: "Sử dụng vòng lặp while với điều kiện",
+            code: `# Đếm ngược từ 5
+count = 5
+[[while]] count > 0:
+    print(count)
+    count [[-=]] 1`,
+            blanks: ["while", "-="],
+            hint: "while kiểm tra điều kiện, -= là phép gán giảm"
+        },
+        {
+            title: "List (Danh Sách)",
+            description: "Thêm và xóa phần tử trong list",
+            code: `# Thao tác với list
+fruits = ["táo", "chuối"]
+fruits.[[append]]("cam")
+fruits.[[remove]]("táo")
+print(fruits)  # ['chuối', 'cam']`,
+            blanks: ["append", "remove"],
+            hint: "append() thêm phần tử, remove() xóa phần tử"
+        },
+        {
+            title: "Dictionary (Từ Điển)",
+            description: "Tạo và truy cập dictionary",
+            code: `# Thông tin học sinh
+student = [[{]]}
+student["name"] = "An"
+student["age"] = 18
+print(student[["["]]name"]})  # An`,
+            blanks: ["{}", "["],
+            hint: "Dictionary dùng {}, truy cập giá trị bằng [key]"
+        },
+        {
+            title: "Tuple",
+            description: "Hiểu về tuple - không thay đổi được",
+            code: `# Tọa độ điểm
+point = [[(]]10, 20)
+x, y = point
+print(f"x={x}, y=[[{y]]}")`,
+            blanks: ["(", "y"],
+            hint: "Tuple dùng (), unpacking để lấy giá trị"
+        },
+        {
+            title: "Định Nghĩa Hàm",
+            description: "Tạo hàm tính tổng hai số",
+            code: `# Hàm tính tổng
+[[def]] add(a, b):
+    [[return]] a + b
+
+result = add(5, 3)
+print(result)  # [[8]]`,
+            blanks: ["def", "return", "8"],
+            hint: "def định nghĩa hàm, return trả về kết quả"
+        },
+        {
+            title: "Tham Số Hàm",
+            description: "Sử dụng tham số mặc định",
+            code: `# Hàm với tham số mặc định
+def greet(name, greeting[["="]]Hello"):
+    print(f"{greeting}, {name}!")
+
+greet("An")  # Hello, An!
+greet("Bình", "Hi")  # [[Hi]], Bình!`,
+            blanks: ["=", "Hi"],
+            hint: "Tham số mặc định dùng =, giá trị truyền vào sẽ ghi đè"
+        },
+        {
+            title: "String Methods",
+            description: "Xử lý chuỗi với methods",
+            code: `# Xử lý chuỗi
+text = "  Python Programming  "
+clean = text.[[strip]]()
+upper = clean.[[upper]]()
+print(upper)  # PYTHON PROGRAMMING`,
+            blanks: ["strip", "upper"],
+            hint: "strip() xóa khoảng trắng, upper() viết hoa"
+        },
+        {
+            title: "List Comprehension",
+            description: "Tạo list mới từ list cũ",
+            code: `# Tạo list bình phương
+numbers = [1, 2, 3, 4, 5]
+squares = [x[[**]]2 [[for]] x in numbers]
+print(squares)  # [1, 4, 9, 16, 25]`,
+            blanks: ["**", "for"],
+            hint: "** là lũy thừa, cú pháp list comprehension: [expr for item in list]"
+        },
+        {
+            title: "Try-Except",
+            description: "Xử lý lỗi với exception handling",
+            code: `# Xử lý lỗi chia cho 0
+[[try]]:
+    result = 10 / 0
+[[except]] ZeroDivisionError:
+    print("Không thể chia cho 0!")`,
+            blanks: ["try", "except"],
+            hint: "try...except để bắt và xử lý lỗi"
+        },
+        {
+            title: "File Operations",
+            description: "Đọc và ghi file",
+            code: `# Ghi file
+[[with]] open("data.txt", "[["w]]") as f:
+    f.[[write]]("Hello Python!")`,
+            blanks: ["with", "w", "write"],
+            hint: "with mở file, 'w' là write mode, write() ghi nội dung"
+        },
+        {
+            title: "Lambda Function",
+            description: "Sử dụng hàm lambda (hàm ẩn danh)",
+            code: `# Hàm lambda tính bình phương
+square = [[lambda]] x: x ** 2
+result = square(5)
+print(result)  # [[25]]`,
+            blanks: ["lambda", "25"],
+            hint: "lambda tạo hàm ẩn danh, 5^2 = 25"
+        }
+    ];
+
+    let currentChallenge = 0;
+    let score = 0;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        currentChallenge = 0;
+        score = 0;
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+        loadChallenge();
+    }
+
+    function loadChallenge() {
+        if (currentChallenge >= CHALLENGES.length) {
+            showResults();
+            return;
+        }
+
+        const challenge = CHALLENGES[currentChallenge];
+        const container = document.getElementById('challenge-container');
+        
+        // Update header
+        document.getElementById('current-challenge').textContent = currentChallenge + 1;
+        document.getElementById('progress-fill').style.width = ((currentChallenge / CHALLENGES.length) * 100) + '%';
+        
+        // Generate HTML
+        let html = `
+            <div class="fade-in">
+                <div class="mb-6">
+                    <h3 class="text-3xl font-bold text-white mb-2">${challenge.title}</h3>
+                    <p class="text-gray-400 text-lg">${challenge.description}</p>
+                </div>
+                <div class="code-editor code-font mb-6">
+        `;
+        
+        // Process code with blanks
+        let codeLines = challenge.code.split('\n');
+        let blankIndex = 0;
+        
+        codeLines.forEach((line, lineNum) => {
+            html += `<span class="code-line"><span class="line-number">${lineNum + 1}</span>`;
+            
+            // Replace [[blank]] with input fields
+            let processedLine = line;
+            const blankRegex = /\[\[([^\]]+)\]\]/g;
+            let match;
+            let lastIndex = 0;
+            let lineHtml = '';
+            
+            while ((match = blankRegex.exec(line)) !== null) {
+                lineHtml += escapeHtml(line.substring(lastIndex, match.index));
+                const blankValue = match[1];
+                lineHtml += `<input type="text" class="code-input" id="blank-${blankIndex}" data-answer="${blankValue}" placeholder="___" />`;
+                blankIndex++;
+                lastIndex = match.index + match[0].length;
+            }
+            lineHtml += escapeHtml(line.substring(lastIndex));
+            
+            // Syntax highlighting
+            lineHtml = highlightSyntax(lineHtml);
+            
+            html += lineHtml + '</span>\n';
+        });
+        
+        html += `</div></div>`;
+        container.innerHTML = html;
+        
+        // Focus first input
+        const firstInput = document.getElementById('blank-0');
+        if (firstInput) firstInput.focus();
+        
+        // Add Enter key listener
+        const inputs = container.querySelectorAll('.code-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else {
+                        checkAnswer();
+                    }
+                }
+            });
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function highlightSyntax(code) {
+        // Simple syntax highlighting
+        const keywords = ['def', 'return', 'if', 'else', 'elif', 'for', 'while', 'in', 'try', 'except', 'with', 'as', 'lambda', 'class', 'import', 'from'];
+        
+        keywords.forEach(keyword => {
+            const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+            code = code.replace(regex, `<span class="keyword">${keyword}</span>`);
+        });
+        
+        // Highlight strings
+        code = code.replace(/"([^"]+)"/g, '<span class="string">"$1"</span>');
+        code = code.replace(/'([^']+)'/g, '<span class="string">\'$1\'</span>');
+        
+        // Highlight comments
+        code = code.replace(/(#.*$)/gm, '<span class="comment">$1</span>');
+        
+        // Highlight numbers
+        code = code.replace(/\b(\d+)\b/g, '<span class="number">$1</span>');
+        
+        return code;
+    }
+
+    function checkAnswer() {
+        const challenge = CHALLENGES[currentChallenge];
+        const inputs = document.querySelectorAll('.code-input');
+        let allCorrect = true;
+        let correctCount = 0;
+        
+        inputs.forEach(input => {
+            const userAnswer = input.value.trim();
+            const correctAnswer = input.dataset.answer;
+            
+            input.classList.remove('correct', 'incorrect', 'shake');
+            
+            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                input.classList.add('correct');
+                correctCount++;
+            } else {
+                input.classList.add('incorrect', 'shake');
+                allCorrect = false;
+            }
+        });
+        
+        if (allCorrect) {
+            // Calculate points (more points for harder challenges)
+            const pointsPerChallenge = Math.floor(100 / CHALLENGES.length);
+            score += pointsPerChallenge;
+            correctAnswers++;
+            
+            document.getElementById('score').textContent = score;
+            
+            // Show success message
+            setTimeout(() => {
+                currentChallenge++;
+                loadChallenge();
+            }, 1000);
+        } else {
+            incorrectAnswers++;
+            // Shake effect already applied
+        }
+    }
+
+    function skipChallenge() {
+        if (confirm('Bạn có chắc muốn bỏ qua thử thách này?')) {
+            incorrectAnswers++;
+            currentChallenge++;
+            loadChallenge();
+        }
+    }
+
+    function showHint() {
+        const challenge = CHALLENGES[currentChallenge];
+        alert('💡 Gợi ý: ' + challenge.hint);
+    }
+
+    function showResults() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('results-screen').classList.remove('hidden');
+        
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('correct-count').textContent = correctAnswers;
+        document.getElementById('incorrect-count').textContent = incorrectAnswers;
+        
+        const percentage = (score / 100) * 100;
+        let icon, title, message;
+        
+        if (percentage >= 90) {
+            icon = '🏆';
+            title = 'XUẤT SẮC!';
+            message = 'Bạn đã thành thạo Python! Chúc mừng bạn đã hoàn thành khóa học PyEz!';
+        } else if (percentage >= 70) {
+            icon = '⭐';
+            title = 'RẤT TỐT!';
+            message = 'Bạn đã nắm vững hầu hết các kiến thức Python. Tiếp tục luyện tập!';
+        } else if (percentage >= 50) {
+            icon = '👍';
+            title = 'KHÁ ỔN!';
+            message = 'Bạn đã có nền tảng tốt. Hãy ôn lại một số bài học để hiểu sâu hơn.';
+        } else {
+            icon = '📚';
+            title = 'CẦN CỐ GẮNG!';
+            message = 'Đừng nản lòng! Hãy ôn lại các bài học và thử lại nhé!';
+        }
+        
+        document.getElementById('results-icon').textContent = icon;
+        document.getElementById('results-title').textContent = title;
+        document.getElementById('results-message').textContent = message;
+    }
+
+    function restartGame() {
+        document.getElementById('results-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>

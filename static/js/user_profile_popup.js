@@ -65,9 +65,14 @@ document.addEventListener('DOMContentLoaded', function () {
       profilePic: trigger.dataset.userProfilePic || '',
       bio: trigger.dataset.userBio || '',
       joined: trigger.dataset.userJoined || '',
-      progress: trigger.dataset.userProgress || '0%',
+      progress: trigger.dataset.userProgress || '0',
       gender: trigger.dataset.userGender || ''
     };
+
+    // Ensure progress has % sign
+    if (userData.progress && !userData.progress.includes('%')) {
+      userData.progress = userData.progress + '%';
+    }
 
     // Update profile picture or avatar
     const profilePicElement = popup.querySelector('#popup-profile-pic');

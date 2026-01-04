@@ -36,7 +36,7 @@
         <!-- Previous Button -->
         <div class="w-32">
           {% if prev_lesson and prev_category %}
-          <a href="{% url 'lesson_detail_category' prev_lesson.id prev_category %}"
+          <a href="{% url 'lesson_detail_category' prev_lesson.order prev_category %}"
             class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition font-bold">
             <i class="fa-solid fa-chevron-left"></i>
             {% trans "Previous" %}
@@ -58,7 +58,7 @@
         <!-- Next Button -->
         <div class="w-32 flex justify-end">
           {% if next_lesson and next_category %}
-          <a href="{% url 'lesson_detail_category' next_lesson.id next_category %}"
+          <a href="{% url 'lesson_detail_category' next_lesson.order next_category %}"
             class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition font-bold">
             {% trans "Next" %}
             <i class="fa-solid fa-chevron-right ml-2"></i>
@@ -105,7 +105,7 @@
         </div>
       </div>
 
-      {% elif category == 'youtube_id' %}
+      {% elif category == 'video' %}
       <!-- YouTube Video Player -->
       <div class="h-full flex flex-col">
         <div class="flex items-center space-x-3 mb-4">
@@ -129,7 +129,7 @@
         </div>
       </div>
 
-      {% elif category == 'quiz_data' %}
+      {% elif category == 'quiz' %}
       <!-- Quiz Test -->
       <div id="quiz-intro" class="h-full flex flex-col items-center justify-center">
         <div class="text-center max-w-2xl">
@@ -253,7 +253,7 @@
       </div>
 
 
-      {% elif category == 'code_test_data' %}
+      {% elif category == 'coding' %}
       <!-- Coding Test -->
       <div id="code-intro" class="h-full flex flex-col items-center justify-center">
         <div class="text-center max-w-2xl">
@@ -297,18 +297,33 @@
         </div>
       </div>
 
-      {% elif category == 'game_html_name' %}
+      {% elif category == 'game' %}
       <!-- Interactive Game -->
-      <div class="h-full flex flex-col items-center justify-center">
-        <div class="text-center max-w-2xl">
-          <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fa-solid fa-gamepad text-4xl text-yellow-600"></i>
+      <div class="h-full flex flex-col">
+        <div class="flex items-center space-x-3 mb-4">
+          <i class="fa-solid fa-gamepad text-4xl text-yellow-600"></i>
+          <div>
+            <h4 class="text-lg font-bold text-gray-800 dark:text-white">{% trans "Interactive Game" %}</h4>
+            <p class="text-sm text-gray-500">{% trans "Play and test your knowledge" %}</p>
           </div>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Interactive Game" %}</h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">
-            {% trans "Game embedding will be implemented soon..." %}
-          </p>
-          <p class="text-sm text-gray-500">Game file: <span class="font-mono">{{ category_content }}</span></p>
+        </div>
+        <div class="flex-grow bg-white dark:bg-gray-800 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+          {% if category_content %}
+            <iframe 
+              src="{% url 'serve_game' category_content %}?lesson_id={{ lesson.id }}" 
+              title="{{ lesson.title }} - Game" referrerPolicy="origin"
+              class="w-full h-full border-0"
+              style="min-height: 600px;"
+              allowfullscreen>
+            </iframe>
+          {% else %}
+            <div class="h-full flex items-center justify-center">
+              <div class="text-center text-gray-500">
+                <i class="fa-solid fa-circle-exclamation text-5xl mb-4"></i>
+                <p class="text-xl font-bold">{% trans "Game not available" %}</p>
+              </div>
+            </div>
+          {% endif %}
         </div>
       </div>
 
@@ -509,7 +524,7 @@
   }
 
   // Add event listeners to radio buttons
-  {% if category == 'quiz_data' %}
+  {% if category == 'quiz' %}
   document.addEventListener('DOMContentLoaded', function() {
     const radioButtons = document.querySelectorAll('input[type="radio"]');
     radioButtons.forEach(radio => {

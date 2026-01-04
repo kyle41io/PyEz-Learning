@@ -4,6 +4,7 @@ from django.utils.translation import activate
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from datetime import datetime, timedelta
 
 # LANGUAGE SWITCHER VIEW
@@ -99,9 +100,8 @@ def student_dashboard(request):
         total_lessons = Lesson.objects.count()
         completed_lessons = Progress.objects.filter(student=user, is_completed=True).count()
         
-        progress_percent = 0
-        if total_lessons > 0:
-            progress_percent = int((completed_lessons / total_lessons) * 100)
+        # Use progress from model
+        progress_percent = user.progress_percent
 
         context = {
             'is_teacher': False,
@@ -168,6 +168,8 @@ def curriculum_view(request):
             if lesson.order == 1 and not progress.is_unlocked:
                 progress.is_unlocked = True
                 progress.save()
+                # Update student's overall progress
+                request.user.update_progress()
             
             lessons_data.append({
                 'lesson': lesson,
@@ -189,11 +191,11 @@ def curriculum_view(request):
 
 # 6. LESSON DETAIL VIEW (Display specific category of a lesson)
 @login_required(login_url='signin')
-def lesson_detail_category(request, lesson_id, category):
+def lesson_detail_category(request, lesson_order, category):
     from .models import Lesson, Progress
     from django.shortcuts import get_object_or_404
     
-    lesson = get_object_or_404(Lesson, id=lesson_id)
+    lesson = get_object_or_404(Lesson, order=lesson_order)
     user = request.user
     
     # Check if lesson is unlocked for student
@@ -207,6 +209,8 @@ def lesson_detail_category(request, lesson_id, category):
         if lesson.order == 1 and not progress.is_unlocked:
             progress.is_unlocked = True
             progress.save()
+            # Update student's overall progress
+            user.update_progress()
         
         # Check if lesson is locked
         if not progress.is_unlocked:
@@ -214,13 +218,13 @@ def lesson_detail_category(request, lesson_id, category):
             return redirect('curriculum')
     
     # Define all possible categories in order
-    category_order = ['pdf_file', 'youtube_id', 'quiz_data', 'code_test_data', 'game_html_name']
+    category_order = ['pdf_file', 'video', 'quiz', 'coding', 'game']
     category_names = {
         'pdf_file': 'Document',
-        'youtube_id': 'Video Lecture',
-        'quiz_data': 'Quiz Test',
-        'code_test_data': 'Coding Challenge',
-        'game_html_name': 'Interactive Game'
+        'video': 'Video Lecture',
+        'quiz': 'Quiz Test',
+        'coding': 'Coding Challenge',
+        'game': 'Interactive Game'
     }
     
     # Get all lessons ordered
@@ -233,7 +237,7 @@ def lesson_detail_category(request, lesson_id, category):
     current_categories = []
     for cat in category_order:
         value = getattr(lesson, cat, None)
-        if cat in ['quiz_data', 'code_test_data']:
+        if cat in ['quiz', 'coding']:
             if value and len(value) > 0:
                 current_categories.append(cat)
         elif value:
@@ -259,7 +263,7 @@ def lesson_detail_category(request, lesson_id, category):
         prev_lesson_categories = []
         for cat in category_order:
             value = getattr(prev_lesson_obj, cat, None)
-            if cat in ['quiz_data', 'code_test_data']:
+            if cat in ['quiz', 'coding']:
                 if value and len(value) > 0:
                     prev_lesson_categories.append(cat)
             elif value:
@@ -281,7 +285,7 @@ def lesson_detail_category(request, lesson_id, category):
         next_lesson_categories = []
         for cat in category_order:
             value = getattr(next_lesson_obj, cat, None)
-            if cat in ['quiz_data', 'code_test_data']:
+            if cat in ['quiz', 'coding']:
                 if value and len(value) > 0:
                     next_lesson_categories.append(cat)
             elif value:
@@ -349,14 +353,10 @@ def my_class(request):
             Q(username__icontains=name_filter)
         )
     
-    # Calculate progress for each classmate
-    total_lessons = Lesson.objects.count()
+    # Get classmates data with progress from model
     classmates_data = []
     
     for classmate in classmates:
-        completed = Progress.objects.filter(student=classmate, is_completed=True).count()
-        progress_percent = int((completed / total_lessons) * 100) if total_lessons > 0 else 0
-        
         classmates_data.append({
             'id': classmate.id,
             'first_name': classmate.first_name,
@@ -364,7 +364,7 @@ def my_class(request):
             'username': classmate.username,
             'email': classmate.email,
             'star_points': classmate.star_points,
-            'progress_percent': progress_percent,
+            'progress_percent': classmate.progress_percent,
             'profile_picture': classmate.profile_picture,
             'bio': classmate.bio,
             'created_at': classmate.created_at,
@@ -483,14 +483,10 @@ def class_detail(request, class_name):
         elif status_filter == 'inactive':
             students = students.filter(is_active=False)
     
-    # Calculate progress for each student
-    total_lessons = Lesson.objects.count()
+    # Get students data with progress from model
     students_data = []
     
     for student in students:
-        completed = Progress.objects.filter(student=student, is_completed=True).count()
-        progress_percent = int((completed / total_lessons) * 100) if total_lessons > 0 else 0
-        
         students_data.append({
             'id': student.id,
             'first_name': student.first_name,
@@ -498,7 +494,7 @@ def class_detail(request, class_name):
             'username': student.username,
             'email': student.email,
             'star_points': student.star_points,
-            'progress_percent': progress_percent,
+            'progress_percent': student.progress_percent,
             'is_active': student.is_active,
             'profile_picture': student.profile_picture,
             'student_class': student.student_class,
@@ -580,7 +576,7 @@ def submit_quiz(request, lesson_id):
         answers = data.get('answers', {})
         
         # Get quiz data
-        quiz_data = lesson.quiz_data
+        quiz_data = lesson.quiz
         if not quiz_data:
             return JsonResponse({'success': False, 'error': 'No quiz data found'}, status=404)
         
@@ -617,7 +613,7 @@ def submit_quiz(request, lesson_id):
         progress.quiz_passed = all_correct
         
         # Check if lesson should be completed
-        has_code_test = lesson.code_test_data and len(lesson.code_test_data) > 0
+        has_code_test = lesson.coding and len(lesson.coding) > 0
         if has_code_test:
             # Need both quiz and code test to complete
             if progress.quiz_passed and progress.code_test_passed:
@@ -646,6 +642,9 @@ def submit_quiz(request, lesson_id):
                 next_progress.is_unlocked = True
                 next_progress.save()
         
+        # Update student's overall progress after any changes
+        request.user.update_progress()
+        
         return JsonResponse({
             'success': True,
             'score': correct_count,
@@ -660,3 +659,78 @@ def submit_quiz(request, lesson_id):
         return JsonResponse({'success': False, 'error': 'Lesson not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+# SERVE GAME VIEW
+@login_required(login_url='signin')
+@xframe_options_sameorigin
+def serve_game(request, game_name):
+    """
+    Serve game HTML files with Django template rendering
+    Allow embedding in iframes from same origin
+    """
+    from django.template import Template, Context
+    from django.conf import settings
+    import os
+    
+    # Security: Only allow specific game files
+    allowed_games = ['Game1.html', 'Game2.html', 'Game3.html']
+    if game_name not in allowed_games:
+        return HttpResponse("Game not found", status=404)
+    
+    # Build path to game file
+    game_path = os.path.join(settings.MEDIA_ROOT, 'games', game_name)
+    
+    # Check if file exists
+    if not os.path.exists(game_path):
+        return HttpResponse("Game file not found", status=404)
+    
+    # Read game file
+    with open(game_path, 'r', encoding='utf-8') as f:
+        game_content = f.read()
+    
+    # Get lesson context if available
+    lesson = None
+    lesson_id = request.GET.get('lesson_id')
+    if lesson_id:
+        try:
+            from .models import Lesson
+            lesson = Lesson.objects.get(id=lesson_id)
+        except:
+            pass
+    
+    # If no lesson found, try to find from referer or use default
+    if not lesson:
+        # For Game1 (lesson 6 or 13), Game2 (lesson 10), Game3 (lesson 17)
+        if game_name == 'Game1.html':
+            # Try to determine from referer or default to lesson 6
+            referer = request.META.get('HTTP_REFERER', '')
+            if 'lesson/13' in referer or 'lesson_id=13' in referer:
+                lesson_id = 13
+            else:
+                lesson_id = 6
+        elif game_name == 'Game2.html':
+            lesson_id = 10
+        elif game_name == 'Game3.html':
+            lesson_id = 17
+        
+        if lesson_id:
+            try:
+                from .models import Lesson
+                lesson = Lesson.objects.get(order=lesson_id)
+            except:
+                # Create a mock lesson object with order
+                class MockLesson:
+                    def __init__(self, order):
+                        self.order = order
+                lesson = MockLesson(lesson_id)
+    
+    # Render as Django template
+    template = Template(game_content)
+    context = Context({
+        'request': request,
+        'lesson': lesson,
+    })
+    rendered_game = template.render(context)
+    
+    return HttpResponse(rendered_game, content_type='text/html')

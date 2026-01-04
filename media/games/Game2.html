@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyBridge: Syntax Survivor</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        body { margin: 0; overflow: hidden; background: #0a0a12; font-family: 'Nunito', sans-serif; }
+        #game-container { position: relative; width: 100vw; height: 100vh; }
+        
+        /* HUD Layers */
+        .hud-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; p-6; }
+        
+        /* Game Overlays */
+        .game-overlay {
+            background: rgba(5, 5, 15, 0.9);
+            backdrop-filter: blur(12px);
+            pointer-events: auto;
+            position: absolute; inset: 0;
+            display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 50;
+            color: white;
+        }
+
+        .hidden { display: none !important; }
+
+        .code-font { font-family: 'Fira Code', monospace; }
+        
+        /* Neon Effects */
+        .neon-text { text-shadow: 0 0 10px rgba(255, 165, 0, 0.7), 0 0 20px rgba(255, 69, 0, 0.3); }
+        .neon-border { border: 1px solid rgba(255, 165, 0, 0.3); box-shadow: 0 0 15px rgba(255, 165, 0, 0.1); }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234, 88, 12, 0.6); }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+        
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-pulse-slow { animation: pulse 3s infinite ease-in-out; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- HUD -->
+    <div id="hud" class="hud-layer p-6 hidden">
+        <div class="flex justify-between items-start w-full px-8 pt-4">
+            <div class="bg-gray-900/80 backdrop-blur border border-orange-500/30 rounded-xl p-4 shadow-lg">
+                <p class="text-[10px] text-orange-400 font-bold uppercase tracking-[0.2em]">Tiến độ</p>
+                <p class="text-2xl font-black text-white"><span id="score-display">0</span> <span class="text-gray-500">/ 10</span></p>
+            </div>
+            <div class="bg-gray-900/80 backdrop-blur border border-cyan-500/30 rounded-xl p-4 shadow-lg">
+                <p class="text-[10px] text-cyan-400 font-bold uppercase tracking-[0.2em]">Trạng thái</p>
+                <div class="text-xl font-bold text-white tracking-tight">ĐANG CHẠY</div>
+            </div>
+        </div>
+        
+        <div class="w-full text-center pb-12 opacity-60">
+            <div class="bg-black/40 inline-flex items-center gap-4 px-6 py-2 rounded-full border border-white/5 backdrop-blur-sm">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Điều khiển</span>
+                <span class="text-orange-500 font-black">A / D</span>
+                <span class="text-gray-600">|</span>
+                <span class="text-orange-500 font-black">← / →</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="game-overlay">
+        <div class="bg-gray-900/50 border border-white/10 p-12 rounded-[40px] shadow-2xl text-center max-w-lg relative overflow-hidden backdrop-blur-xl">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50"></div>
+            
+            <div class="text-7xl mb-6 drop-shadow-2xl">🐍</div>
+            <h1 class="text-6xl font-black text-white mb-2 tracking-tighter neon-text italic">PyBridge</h1>
+            <p class="text-orange-500 font-mono tracking-widest text-sm mb-10 opacity-80 uppercase">v2.0 // Sinh tồn Python</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-10">
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5 text-left">
+                    <p class="text-orange-400 text-[10px] font-bold uppercase mb-1">Thời gian</p>
+                    <p class="text-white text-sm font-medium">12 giây mỗi câu</p>
+                </div>
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5 text-left">
+                    <p class="text-orange-400 text-[10px] font-bold uppercase mb-1">Thử thách</p>
+                    <p class="text-white text-sm font-medium">10 Cổng Logic</p>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="btn-primary w-full text-white text-xl font-black py-5 px-12 rounded-2xl transition tracking-widest uppercase">
+                Bắt đầu ngay
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="game-over-screen" class="game-overlay hidden">
+        <div class="bg-[#0f0f1a] border border-red-500/30 p-10 rounded-[32px] shadow-[0_0_50px_rgba(239,68,68,0.2)] text-center max-w-md scale-up">
+            <div class="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="text-4xl text-red-500 font-bold">!</span>
+            </div>
+            
+            <h1 class="text-3xl font-black text-white mb-2 tracking-tight">LỖI THỰC THI</h1>
+            <p class="text-gray-400 text-sm mb-8 leading-relaxed px-4">Logic của bạn không vượt qua được cổng cú pháp. Tiến trình đã bị hủy.</p>
+            
+            <div id="fail-reason" class="bg-red-500/5 text-red-400 p-5 rounded-2xl font-mono text-xs mb-10 border border-red-500/10 leading-relaxed">
+                <!-- Reason inserted via JS -->
+            </div>
+            
+            <div class="flex flex-col gap-3">
+                <button onclick="resetGame()" class="btn-primary text-white text-sm font-bold py-4 rounded-xl tracking-widest uppercase">
+                    Thử lại
+                </button>
+                <button onclick="location.reload()" class="btn-secondary text-gray-300 text-xs font-bold py-4 rounded-xl tracking-widest uppercase">
+                    Thoát
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIN SCREEN -->
+    <div id="win-screen" class="game-overlay hidden">
+        <div class="bg-[#0f0f1a] border border-green-500/30 p-12 rounded-[40px] shadow-[0_0_60px_rgba(34,197,94,0.2)] text-center max-w-md">
+            <div class="text-7xl mb-6">💎</div>
+            <h1 class="text-4xl font-black text-white mb-2 italic tracking-tighter">HOÀN THÀNH</h1>
+            <p class="text-gray-400 mb-8 font-medium">Bạn đã vượt qua 10/10 cổng logic thành công!</p>
+            
+            <div class="bg-green-500/10 rounded-3xl p-6 mb-10 border border-green-500/20">
+                <p class="text-[10px] text-green-400 font-bold uppercase tracking-[0.3em] mb-2">Phần thưởng</p>
+                <p class="text-5xl font-black text-white neon-text">+100 <span class="text-2xl text-yellow-500">⭐</span></p>
+            </div>
+
+            <button onclick="location.reload()" class="btn-primary w-full text-white text-sm font-bold py-5 rounded-2xl tracking-widest uppercase">
+                Nhận thưởng & Kết thúc
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const playerName = "{{ request.user.username|default:'guest' }}";
+    
+    const QUESTIONS = [
+        { q: "print(10 // 3) sẽ cho kết quả là 3.33", a: false, reason: "Lỗi: // là phép chia lấy phần nguyên. 10 // 3 sẽ bằng 3." },
+        { q: "List (Danh sách) trong Python có thể thay đổi nội dung (mutable).", a: true, reason: "Chính xác: Bạn có thể sửa đổi các phần tử của List sau khi tạo." },
+        { q: "len('Py') sẽ trả về kết quả là 2.", a: true, reason: "Chính xác: Chuỗi 'Py' có đúng 2 ký tự." },
+        { q: "x = [1]; x.append(2) kết quả x là [1, 2]", a: true, reason: "Chính xác: append() thêm phần tử vào cuối danh sách." },
+        { q: "'A' + 'B' == 'AB'", a: true, reason: "Chính xác: Phép cộng chuỗi sẽ nối chúng lại với nhau." },
+        { q: "Tuple sử dụng ngoặc vuông [ ].", a: false, reason: "Lỗi: Tuple dùng ngoặc đơn ( ). Ngoặc vuông [ ] dùng cho List." },
+        { q: "True and False kết quả là True.", a: false, reason: "Lỗi: Phép toán AND yêu cầu cả hai vế phải là True." },
+        { q: "Từ khóa 'def' dùng để bắt đầu định nghĩa hàm.", a: true, reason: "Chính xác: Hàm trong Python luôn bắt đầu bằng 'def'." },
+        { q: "input() mặc định trả về kiểu dữ liệu số.", a: false, reason: "Lỗi: input() luôn trả về kiểu Chuỗi (String) theo mặc định." },
+        { q: "Dấu # dùng để viết ghi chú (comment) trên 1 dòng.", a: true, reason: "Chính xác: Ký tự # dùng để bắt đầu một ghi chú." }
+    ];
+
+    // --- BIẾN THREE.JS ---
+    let scene, camera, renderer;
+    let bridge, snakeHead;
+    let snakeBody = [];
+    let particles;
+    let currentWall = null;
+    
+    // Trạng thái
+    let score = 0;
+    let currentQIndex = 0;
+    let lane = -1; // -1 hoặc 1
+    
+    // TỐC ĐỘ: ~12.5 GIÂY MỖI CÂU
+    const BASE_SPEED = 0.08;
+    let gameSpeed = BASE_SPEED; 
+    
+    let canControl = true;
+    const LANE_WIDTH = 5.5;
+
+    // --- KHỞI TẠO ---
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020208); 
+        scene.fog = new THREE.FogExp2(0x020208, 0.018);
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 7); 
+        camera.lookAt(0, 1, -10);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+        
+        const pointLight = new THREE.PointLight(0xff7700, 1.5, 25);
+        pointLight.position.set(0, 2, 2);
+        scene.add(pointLight);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('game-container').appendChild(renderer.domElement);
+
+        // Cầu Neon
+        const gridTexture = createNeonGridTexture();
+        gridTexture.wrapS = THREE.RepeatWrapping;
+        gridTexture.wrapT = THREE.RepeatWrapping;
+        gridTexture.repeat.set(50, 500);
+
+        const bridgeGeo = new THREE.PlaneGeometry(35, 2000);
+        const bridgeMat = new THREE.MeshPhongMaterial({ 
+            map: gridTexture,
+            emissive: 0x050515,
+            emissiveIntensity: 1
+        });
+        bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
+        bridge.rotation.x = -Math.PI / 2;
+        bridge.position.z = -990;
+        scene.add(bridge);
+
+        createSnake();
+        createParticles();
+        
+        window.addEventListener('keydown', handleInput);
+        window.addEventListener('resize', onWindowResize, false);
+        
+        animate();
+    }
+
+    function createSnake() {
+        const headGeo = new THREE.BoxGeometry(1.4, 0.9, 1.8);
+        const headMat = new THREE.MeshPhongMaterial({ color: 0xff8800, shininess: 120 }); 
+        snakeHead = new THREE.Mesh(headGeo, headMat);
+        snakeHead.position.set(0, 0.45, 3);
+        scene.add(snakeHead);
+        
+        const eyeGeo = new THREE.SphereGeometry(0.22);
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+        leftEye.position.set(-0.4, 0.4, -0.7);
+        snakeHead.add(leftEye);
+        const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+        rightEye.position.set(0.4, 0.4, -0.7);
+        snakeHead.add(rightEye);
+
+        snakeBody = [];
+        const bodyGeo = new THREE.BoxGeometry(1.1, 0.7, 1.2);
+        for(let i=1; i<=5; i++) {
+            const bodyMat = new THREE.MeshPhongMaterial({ color: 0xcc6600, opacity: 1 - (i*0.1), transparent: true });
+            const segment = new THREE.Mesh(bodyGeo, bodyMat);
+            segment.position.set(0, 0.35, 3 + i*1.3);
+            scene.add(segment);
+            snakeBody.push(segment);
+        }
+    }
+
+    function createParticles() {
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        for (let i = 0; i < 800; i++) {
+            vertices.push((Math.random() - 0.5) * 150, (Math.random() - 0.5) * 60 + 10, (Math.random() - 0.5) * 300);
+        }
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        const material = new THREE.PointsMaterial({ color: 0x5555ff, size: 0.15, transparent: true, opacity: 0.4 });
+        particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+    }
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('hud').classList.remove('hidden');
+        resetGameState();
+        spawnWall();
+    }
+
+    function resetGame() {
+        document.getElementById('game-over-screen').classList.add('hidden');
+        document.getElementById('hud').classList.remove('hidden');
+        resetGameState();
+        spawnWall();
+    }
+
+    function resetGameState() {
+        score = 0;
+        currentQIndex = 0;
+        lane = -1;
+        snakeHead.position.x = -LANE_WIDTH;
+        snakeBody.forEach((seg, i) => {
+            seg.position.x = -LANE_WIDTH;
+            seg.position.z = 3 + (i+1)*1.3;
+        });
+        gameSpeed = BASE_SPEED;
+        updateScoreUI();
+        if (currentWall) { scene.remove(currentWall); currentWall = null; }
+    }
+
+    function spawnWall() {
+        if (currentQIndex >= QUESTIONS.length) { winGame(); return; }
+
+        const qData = QUESTIONS[currentQIndex];
+        const wallGroup = new THREE.Group();
+        wallGroup.position.z = -60; 
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024; canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.fillStyle = '#0a0a18';
+        ctx.fillRect(0, 0, 1024, 1024);
+        
+        ctx.fillStyle = '#1e1e30';
+        ctx.fillRect(0, 0, 1024, 150);
+        ctx.fillStyle = '#ea580c';
+        ctx.font = 'bold 40px "Nunito"';
+        ctx.textAlign = 'center';
+        ctx.fillText("CỔNG KIỂM TRA CÚ PHÁP " + (currentQIndex + 1), 512, 90);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 64px "Fira Code"';
+        wrapText(ctx, qData.q, 512, 320, 900, 90);
+        
+        const leftIsTrue = Math.random() > 0.5;
+        wallGroup.userData = { 
+            correctLane: leftIsTrue ? (qData.a ? -1 : 1) : (qData.a ? 1 : -1),
+            questionData: qData 
+        };
+
+        drawPortal(ctx, 80, 580, 400, 380, leftIsTrue ? '#22c55e' : '#ef4444', leftIsTrue ? "ĐÚNG" : "SAI");
+        drawPortal(ctx, 544, 580, 400, 380, !leftIsTrue ? '#22c55e' : '#ef4444', !leftIsTrue ? "ĐÚNG" : "SAI");
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const wallGeo = new THREE.BoxGeometry(18, 12, 0.5);
+        const wallMat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0.95 });
+        const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+        wallMesh.position.y = 5.5; 
+        
+        wallGroup.add(wallMesh);
+        scene.add(wallGroup);
+        currentWall = wallGroup;
+        canControl = true;
+    }
+
+    function drawPortal(ctx, x, y, w, h, color, text) {
+        ctx.shadowColor = color; ctx.shadowBlur = 30;
+        ctx.strokeStyle = color; ctx.lineWidth = 12;
+        ctx.strokeRect(x, y, w, h);
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(x, y, w, h);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = color;
+        ctx.font = 'black 90px "Nunito"';
+        ctx.fillText(text, x + w/2, y + h/2 + 30);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        if (bridge && currentWall) {
+            bridge.material.map.offset.y -= (gameSpeed * 0.04);
+            particles.position.z += gameSpeed * 1.5;
+            if (particles.position.z > 50) particles.position.z = -150;
+        }
+        
+        if (snakeHead) {
+            const targetX = lane * LANE_WIDTH;
+            snakeHead.position.x += (targetX - snakeHead.position.x) * 0.08;
+            snakeHead.position.y = 0.45 + Math.sin(Date.now() * 0.004) * 0.04;
+            camera.position.x += (targetX * 0.4 - camera.position.x) * 0.04;
+
+            snakeBody.forEach((seg, i) => {
+                let target = (i === 0) ? snakeHead.position.x : snakeBody[i-1].position.x;
+                seg.position.x += (target - seg.position.x) * 0.12;
+            });
+        }
+
+        if (currentWall) {
+            currentWall.position.z += gameSpeed;
+            if (currentWall.position.z > 2.2) checkAnswer();
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    function checkAnswer() {
+        const correctLane = currentWall.userData.correctLane;
+        const currentX = snakeHead.position.x;
+        const isSafe = (correctLane === -1 && currentX < -1.5) || (correctLane === 1 && currentX > 1.5);
+
+        if (isSafe) {
+            scene.remove(currentWall);
+            currentWall = null;
+            score++; currentQIndex++;
+            updateScoreUI();
+            gameSpeed = Math.min(gameSpeed + 0.015, 0.25);
+            setTimeout(spawnWall, 600);
+        } else {
+            gameOver(currentWall.userData.questionData.reason);
+        }
+    }
+
+    function handleInput(e) {
+        if (!canControl || !currentWall) return;
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') lane = -1;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') lane = 1;
+    }
+
+    function gameOver(reason) {
+        canControl = false; gameSpeed = 0;
+        document.getElementById('fail-reason').innerText = reason;
+        document.getElementById('game-over-screen').classList.remove('hidden');
+        document.getElementById('hud').classList.add('hidden');
+    }
+
+    function winGame() {
+        gameSpeed = 0;
+        document.getElementById('win-screen').classList.remove('hidden');
+        document.getElementById('hud').classList.add('hidden');
+    }
+
+    function updateScoreUI() { document.getElementById('score-display').innerText = score; }
+
+    function createNeonGridTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#050510'; ctx.fillRect(0, 0, 128, 128);
+        ctx.fillStyle = '#1e1b4b'; ctx.fillRect(0, 0, 128, 2);
+        ctx.fillRect(0, 0, 2, 128);
+        ctx.fillStyle = '#ea580c'; ctx.globalAlpha = 0.3; ctx.fillRect(0, 62, 128, 4);
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+        var words = text.split(' '), line = '';
+        for(var n = 0; n < words.length; n++) {
+            var testLine = line + words[n] + ' ';
+            if (context.measureText(testLine).width > maxWidth && n > 0) {
+                context.fillText(line, x, y); line = words[n] + ' '; y += lineHeight;
+            } else { line = testLine; }
+        }
+        context.fillText(line, x, y);
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    init();
+</script>
+</body>
+</html>

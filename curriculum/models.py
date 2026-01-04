@@ -14,13 +14,13 @@ class Lesson(models.Model):
     order = models.PositiveIntegerField(default=1)
     points_value = models.IntegerField(default=10, help_text="Stars awarded for completing this lesson")
     # Files
-    youtube_id = models.CharField(max_length=20, blank=True, null=True, help_text="YouTube video ID")
+    video = models.CharField(max_length=20, blank=True, null=True, help_text="YouTube video ID")
     pdf_file = models.FileField(upload_to='lessons/docs/', blank=True, null=True)
-    game_html_name = models.CharField(max_length=100, blank=True, help_text="Name of game file in static")
+    game = models.CharField(max_length=100, blank=True, help_text="Name of game file in static")
 
     # Static Tests (JSON for flexibility)
-    quiz_data = models.JSONField(default=list, blank=True) 
-    code_test_data = models.JSONField(default=list, blank=True) 
+    quiz = models.JSONField(default=list, blank=True) 
+    coding = models.JSONField(default=list, blank=True) 
 
     def __str__(self):
         return self.title
@@ -28,15 +28,15 @@ class Lesson(models.Model):
     @property
     def youtube_url(self):
         """Returns the full YouTube watch URL"""
-        if self.youtube_id:
-            return f"https://www.youtube.com/watch?v={self.youtube_id}"
+        if self.video:
+            return f"https://www.youtube.com/watch?v={self.video}"
         return None
     
     @property
     def youtube_embed_url(self):
         """Returns the YouTube embed URL for iframe"""
-        if self.youtube_id:
-            return f"https://www.youtube.com/embed/{self.youtube_id}"
+        if self.video:
+            return f"https://www.youtube.com/embed/{self.video}"
         return None
 
 class Progress(models.Model):

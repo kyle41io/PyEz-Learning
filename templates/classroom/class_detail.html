@@ -184,11 +184,12 @@
 <script>
   function toggleStudentStatus(studentId, currentStatus) {
     if (confirm('{% trans "Are you sure you want to change this student\'s status?" %}')) {
-      fetch(`/toggle-student-status/${studentId}/`, {
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+      fetch(`{% url 'toggle_student_status' 0 %}`.replace('0', studentId), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
+          'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
           is_active: !currentStatus

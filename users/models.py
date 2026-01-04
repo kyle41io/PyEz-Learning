@@ -21,6 +21,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     student_class = models.CharField(max_length=10, choices=CLASS_CHOICES, blank=True, null=True)
     star_points = models.IntegerField(default=0)
+    progress_percent = models.IntegerField(default=0, help_text='Learning progress percentage (0-100)')
     google_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
@@ -45,3 +46,22 @@ class User(AbstractUser):
     def is_student(self):
         """Check if user is a student by role"""
         return self.role == 'student'
+    
+    def update_progress(self):
+        """Calculate and update student's learning progress"""
+        if self.role != 'student':
+            return
+        
+        from curriculum.models import Lesson, Progress
+        
+        total_lessons = Lesson.objects.count()
+        if total_lessons == 0:
+            self.progress_percent = 0
+        else:
+            completed_lessons = Progress.objects.filter(
+                student=self, 
+                is_completed=True
+            ).count()
+            self.progress_percent = int((completed_lessons / total_lessons) * 100)
+        
+        self.save(update_fields=['progress_percent'])

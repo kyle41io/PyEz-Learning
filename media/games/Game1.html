@@ -1,0 +1,712 @@
+<div id="pyez-game-root" style="max-width:1000px;margin:24px auto;">
+  <style>
+    :root{
+      --bg1: #a8e6ff;
+      --bg2: #dff7ff;
+      --panel: rgba(255,255,255,0.9);
+      --accent: #0ea5b7;
+      --apple: #ff6b6b;
+      --apple-dark: #e65b5b;
+      --obstacle: #7b8794;
+      --text-dark: #0f172a;
+    }
+
+    #pyez-game {
+      background: linear-gradient(180deg,var(--bg1),var(--bg2));
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(15,23,42,0.12);
+      position: relative;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    .game-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:12px;
+    }
+
+    .game-panel {
+      background: var(--panel);
+      border-radius:10px;
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:120px;
+      box-shadow: 0 4px 10px rgba(12, 18, 32, 0.06);
+    }
+
+    .question-box {
+      flex:1;
+      padding:12px;
+      border-radius:10px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45));
+      min-height:56px;
+    }
+
+    .question-text {
+      font-size:16px;
+      color:var(--text-dark);
+      font-weight:600;
+      margin:0;
+    }
+
+    .meta {
+      font-size:13px;
+      color:#334155;
+      opacity:0.9;
+    }
+
+    #game-canvas {
+      display:block;
+      width:100%;
+      height:420px;
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+      box-shadow: inset 0 -20px 60px rgba(255,255,255,0.06);
+    }
+
+    .hud {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .big {
+      font-weight:700;
+      font-size:18px;
+      color:var(--text-dark);
+    }
+
+    .progress {
+      height:8px;
+      background: rgba(12,18,32,0.06);
+      border-radius:6px;
+      overflow:hidden;
+      width:220px;
+    }
+
+    .progress > i {
+      display:block;
+      height:100%;
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+      width:0%;
+    }
+
+    .controls-mobile {
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      justify-content:center;
+    }
+
+    .btn {
+      background:var(--accent);
+      color:white;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      border:none;
+      box-shadow: 0 6px 18px rgba(14,165,183,0.18);
+    }
+
+    .btn.ghost {
+      background:transparent;
+      color:var(--text-dark);
+      box-shadow:none;
+      border:1px solid rgba(12,18,32,0.06);
+    }
+
+    @media (max-width:720px){
+      #game-canvas { height:320px; }
+      .game-top { flex-direction:column; align-items:stretch; gap:10px; }
+      .progress { width:150px; }
+    }
+  </style>
+
+  <div id="pyez-game">
+    <div class="game-top">
+      <div class="question-box">
+        <div class="question-text" id="q-text">Question will appear here...</div>
+        <div class="meta" id="q-meta">Di chuyển rắn sang trái/phải để đón đúng quả táo</div>
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center;">
+        <div class="game-panel hud">
+          <div style="text-align:center;">
+            <div class="big" id="score">Score: 0</div>
+            <div class="meta">Điểm</div>
+          </div>
+        </div>
+
+        <div class="game-panel hud">
+          <div style="text-align:center;">
+            <div class="big" id="timer">03:00</div>
+            <div class="meta">Thời gian</div>
+          </div>
+        </div>
+
+        <div class="game-panel hud">
+          <div style="text-align:center;">
+            <div class="big" id="q-count">Q 0/12</div>
+            <div class="meta">Câu hỏi</div>
+            <div class="progress" title="progress">
+              <i id="progress-bar"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+      <div>
+        <button id="start-btn" class="btn">Start Game</button>
+        <button id="pause-btn" class="btn ghost" disabled>Pause</button>
+        <button id="download-btn" class="btn ghost" disabled>Download Score</button>
+      </div>
+
+      <div class="controls-mobile" aria-hidden="true">
+        <button id="left-touch" class="btn ghost">◀</button>
+        <button id="right-touch" class="btn ghost">▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d', { alpha: true });
+
+  const scoreEl = document.getElementById('score');
+  const timerEl = document.getElementById('timer');
+  const qTextEl = document.getElementById('q-text');
+  const qCountEl = document.getElementById('q-count');
+  const progressBar = document.getElementById('progress-bar');
+  const startBtn = document.getElementById('start-btn');
+  const pauseBtn = document.getElementById('pause-btn');
+  const downloadBtn = document.getElementById('download-btn');
+  const leftTouch = document.getElementById('left-touch');
+  const rightTouch = document.getElementById('right-touch');
+
+  const playerName = "{{ request.user.username|default:'guest' }}";
+  const lessonOrder = {{ lesson.order }};
+
+  // CONFIG CHANGES
+  const GAME_SECONDS = 180;        // 3 minutes
+  const QUESTION_INTERVAL = 15;    // seconds per question
+  const TOTAL_QUESTIONS = Math.floor(GAME_SECONDS / QUESTION_INTERVAL); // 12
+  const APPLES_PER_QUESTION = 4;
+  const OBSTACLE_SPAWN_MIN = 1; // min obstacles per wave
+  const OBSTACLE_SPAWN_MAX = 3; // max obstacles per wave
+  const GRAVITY = 1.0;
+
+  // state
+  let width = 0, height = 0;
+  let lastTime = 0;
+  let running = false;
+  let paused = false;
+  let startTime = null;
+  let elapsed = 0;
+  let score = 0;
+  let questionIndex = 0;
+  let apples = [];
+  let obstacles = [];
+  let correctCount = 0;
+  let snake = { x:0, y:0, width:110, height:28, speed:300, vx:0 };
+
+  // Vietnamese beginner questions for Lesson 6
+  const questionsLesson6 = [
+    { q: "Câu lệnh nào in ra 'Hello' trong Python?", opts: ["echo('Hello')", "print('Hello')", "console.log('Hello')", "show('Hello')"], ans: 1 },
+    { q: "Từ khóa nào bắt đầu vòng lặp for trong Python?", opts: ["loop", "for", "iterate", "repeat"], ans: 1 },
+    { q: "Dấu nào dùng để so sánh bằng trong Python?", opts: ["=", "==", "===", ":"], ans: 1 },
+    { q: "Cấu trúc nào là danh sách trong Python?", opts: ["(1,2,3)", "{1,2,3}", "[1,2,3]", "<1,2,3>"], ans: 2 },
+    { q: "Cách đúng để định nghĩa hàm f là gì?", opts: ["func f():", "def f():", "function f(){}", "define f():"], ans: 1 },
+    { q: "Câu lệnh nào tăng giá trị x lên 1?", opts: ["x += 1", "x--", "inc(x)", "x = x + 2"], ans: 0 },
+    { q: "Từ khóa nào dùng để kiểm tra điều kiện?", opts: ["switch", "case", "if", "while"], ans: 2 },
+    { q: "Cách viết chú thích (comment) trong Python?", opts: ["// comment", "/* comment */", "# comment", "<!-- comment -->"], ans: 2 },
+    { q: "Vòng lặp nào chạy cho đến khi điều kiện sai?", opts: ["for", "repeat", "do-while", "while"], ans: 3 },
+    { q: "Cách tạo một dictionary rỗng?", opts: ["[]", "()", "{}", "dict()"], ans: 2 },
+    { q: "Phần mở rộng file Python đúng là gì?", opts: [".py", ".js", ".java", ".p"], ans: 0 },
+    { q: "Câu lệnh return dùng để làm gì trong hàm?", opts: ["Trả về giá trị và kết thúc hàm", "Bắt đầu hàm", "In giá trị", "Định nghĩa hàm"], ans: 0 }
+  ];
+
+  // Advanced questions for Lesson 13
+  const questionsLesson13 = [
+    {q:"Kết quả của len([1,2,3]) là gì?",opts:["2","3","[1,2,3]","Lỗi"],ans:1},
+    {q:"Hàm có return sẽ làm gì?",opts:["In ra giá trị","Dừng chương trình","Trả về giá trị","Lặp lại hàm"],ans:2},
+    {q:"Phạm vi (scope) của biến trong hàm là gì?",opts:["Toàn cục","Chỉ trong hàm","Toàn chương trình","Không xác định"],ans:1},
+    {q:"Cách khai báo hàm có tham số x?",opts:["def f(x):","func f(x)","function f(x)","define f(x)"],ans:0},
+    {q:"dict trong Python lưu dữ liệu dạng?",opts:["Danh sách","Cặp key-value","Chuỗi","Tuple"],ans:1},
+    {q:"return kết thúc điều gì?",opts:["Chương trình","Vòng lặp","Hàm","File"],ans:2},
+    {q:"Biến toàn cục khai báo bằng?",opts:["global","public","extern","static"],ans:0},
+    {q:"list có thể thay đổi giá trị không?",opts:["Không","Có","Chỉ tuple","Chỉ dict"],ans:1},
+    {q:"default parameter dùng để làm gì?",opts:["Bắt buộc nhập","Giá trị mặc định","Xóa tham số","Lặp hàm"],ans:1},
+    {q:"None trong Python là gì?",opts:["0","Rỗng","False","Không có giá trị"],ans:3},
+    {q:"Hàm có thể trả về nhiều giá trị không?",opts:["Không","Có (tuple)","Chỉ 1","Lỗi"],ans:1},
+    {q:"lambda là gì?",opts:["Biến","Hàm ẩn danh","Vòng lặp","Class"],ans:1},
+  ];
+
+  // Select questions based on lesson
+  const questions = lessonOrder === 13 ? questionsLesson13 : questionsLesson6;
+
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    width = Math.max(480, rect.width);
+    height = rect.height;
+    canvas.width = Math.floor(width * devicePixelRatio);
+    canvas.height = Math.floor(height * devicePixelRatio);
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    snake.y = height - 50;
+    snake.x = width/2 - snake.width/2;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  startBtn.addEventListener('click', () => {
+    if (!running) startGame();
+    else restartGame();
+  });
+  pauseBtn.addEventListener('click', () => {
+    if (!running) return;
+    paused = !paused;
+    pauseBtn.innerText = paused ? 'Resume' : 'Pause';
+  });
+  downloadBtn.addEventListener('click', () => {
+    downloadResult();
+  });
+
+  leftTouch.addEventListener('touchstart', ()=>moveLeft(true));
+  leftTouch.addEventListener('touchend', ()=>moveLeft(false));
+  rightTouch.addEventListener('touchstart', ()=>moveRight(true));
+  rightTouch.addEventListener('touchend', ()=>moveRight(false));
+
+  const keys = {left:false, right:false};
+  window.addEventListener('keydown', (e) => {
+    if (['ArrowLeft','a','A'].includes(e.key)) { moveLeft(true); }
+    if (['ArrowRight','d','D'].includes(e.key)) { moveRight(true); }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (['ArrowLeft','a','A'].includes(e.key)) { moveLeft(false); }
+    if (['ArrowRight','d','D'].includes(e.key)) { moveRight(false); }
+  });
+
+  function moveLeft(val){ keys.left = val; }
+  function moveRight(val){ keys.right = val; }
+
+  // Spawn apples & obstacles. Speeds are computed so apples land before QUESTION_INTERVAL ends.
+  function spawnWave(idx) {
+    apples = [];
+    obstacles = [];
+    const q = questions[idx % questions.length];
+    qTextEl.innerText = q.q;
+    qCountEl.innerText = `Q ${Math.min(idx+1,TOTAL_QUESTIONS)}/${TOTAL_QUESTIONS}`;
+
+    const options = q.opts.map((t, i) => ({ text:t, correct: i === q.ans }));
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    const spawnCount = Math.min(APPLES_PER_QUESTION, options.length);
+    const used = options.slice(0, spawnCount);
+    const margin = 60;
+
+    const groundY = height - 50;
+    for (let i = 0; i < used.length; i++) {
+      const aw = 72;
+      const ax = margin + Math.random() * (width - margin*2 - aw);
+      const ay = - (Math.random()*120 + 20);
+      // ensure landing time less than QUESTION_INTERVAL - 1s
+      const maxLandTime = Math.max(3, QUESTION_INTERVAL - 1);
+      const timeToLand = rand(4, Math.min(12, maxLandTime)); // seconds
+      const distance = (groundY - (ay + 72)); // approximate target distance
+      const speed = Math.max(30, Math.abs(distance) / timeToLand); // pixels per sec
+      apples.push({
+        x: ax, y: ay, r: 36,
+        text: used[i].text, correct: used[i].correct,
+        speed, landed: false
+      });
+    }
+
+    // spawn obstacles: 1 to 3 per wave
+    const obsCount = Math.floor(rand(OBSTACLE_SPAWN_MIN, OBSTACLE_SPAWN_MAX + 1));
+    for (let i = 0; i < obsCount; i++) {
+      const ox = margin + Math.random() * (width - margin*2 - 36);
+      const oy = - (Math.random()*120 + 40);
+      const obsTime = rand(2.0, Math.max(3.0, Math.min(6.0, QUESTION_INTERVAL/2))); // faster than apples
+      const distance = (height - 50 - (oy + 36));
+      const spd = Math.max(60, Math.abs(distance) / obsTime);
+      const types = ['rock','spike','box'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      obstacles.push({
+        x: ox, y: oy, r: 22,
+        speed: spd,
+        type
+      });
+    }
+  }
+
+  function circleRectCollide(cx, cy, r, rx, ry, rw, rh) {
+    const nearestX = Math.max(rx, Math.min(cx, rx + rw));
+    const nearestY = Math.max(ry, Math.min(cy, ry + rh));
+    const dx = cx - nearestX;
+    const dy = cy - nearestY;
+    return (dx*dx + dy*dy) <= r*r;
+  }
+
+  function drawBackground(dt) {
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#c7f6ff');
+    grad.addColorStop(1, '#e7fbff');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    const t = Date.now() * 0.00012;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    drawCloud(width * 0.1 + Math.sin(t * 0.6) * 40, height * 0.12, 70);
+    drawCloud(width * 0.6 + Math.cos(t * 0.9) * 60, height * 0.08, 54);
+    drawCloud(width * 0.8 + Math.sin(t * 0.45) * 40, height * 0.18, 46);
+
+    ctx.fillStyle = '#9be6c6';
+    ctx.fillRect(0, height - 48, width, 48);
+  }
+
+  function drawCloud(cx, cy, size) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, size*0.6, 0, Math.PI*2);
+    ctx.arc(cx + size*0.5, cy + 6, size*0.5, 0, Math.PI*2);
+    ctx.arc(cx + size*0.9, cy, size*0.45, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function drawApple(a) {
+    ctx.beginPath();
+    ctx.fillStyle = '#ff6b6b';
+    ctx.shadowColor = 'rgba(0,0,0,0.15)';
+    ctx.shadowBlur = 6;
+    ctx.arc(a.x + a.r, a.y + a.r, a.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.ellipse(a.x + a.r - a.r*0.45, a.y + a.r - a.r*0.5, a.r*0.45, a.r*0.25, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = '#6b3b2b';
+    ctx.fillRect(a.x + a.r - 2, a.y + 2, 4, 10);
+
+    ctx.fillStyle = 'white';
+    ctx.font = '700 12px Inter, Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    wrapText(ctx, a.text, a.x + a.r, a.y + a.r, a.r*1.4, 14);
+  }
+
+  function drawObstacle(o) {
+    ctx.shadowColor = 'rgba(0,0,0,0.12)';
+    ctx.shadowBlur = 6;
+    if (o.type === 'rock') {
+      ctx.beginPath();
+      ctx.fillStyle = '#7b8794';
+      ctx.arc(o.x + o.r, o.y + o.r, o.r, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#e6e9ef';
+      ctx.font = '700 12px Inter, Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('!', o.x + o.r, o.y + o.r - 1);
+    } else if (o.type === 'spike') {
+      ctx.beginPath();
+      ctx.fillStyle = '#a31b1b';
+      const cx = o.x + o.r, cy = o.y + o.r;
+      ctx.moveTo(cx, cy - o.r);
+      ctx.lineTo(cx + o.r, cy + o.r);
+      ctx.lineTo(cx - o.r, cy + o.r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '700 12px Inter, Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('-', cx, cy + 2);
+    } else { // box
+      ctx.beginPath();
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(o.x, o.y, o.r*2, o.r*2);
+      ctx.fillStyle = '#fff';
+      ctx.font = '800 14px Inter, Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('X', o.x + o.r, o.y + o.r);
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    let testY = y;
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = context.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        context.fillText(line, x, testY);
+        line = words[n] + ' ';
+        testY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    context.fillText(line.trim(), x, testY);
+  }
+
+  function drawSnake() {
+    const sx = snake.x, sy = snake.y, sw = snake.width, sh = snake.height;
+    ctx.beginPath();
+    ctx.fillStyle = '#064e3b';
+    ctx.roundRect? ctx.roundRect(sx, sy, sw, sh, 14) : ctx.fillRect(sx, sy, sw, sh);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = '#10b981';
+    ctx.roundRect? ctx.roundRect(sx+2, sy+2, sw-4, sh-6, 12) : ctx.fillRect(sx+2, sy+2, sw-4, sh-6);
+    ctx.fill();
+
+    ctx.beginPath();
+    const headR = 18;
+    ctx.fillStyle = '#06b6d4';
+    ctx.arc(sx + 16, sy + sh/2, headR, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = '#09232b';
+    ctx.arc(sx + 20, sy + sh/2 - 3, 3.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.fillStyle = 'white';
+    ctx.arc(sx + 22, sy + sh/2 - 5, 1.2, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function update(ts) {
+    if (!running || paused) {
+      lastTime = ts;
+      requestAnimationFrame(update);
+      return;
+    }
+
+    if (!lastTime) lastTime = ts;
+    const dt = (ts - lastTime) / 1000;
+    lastTime = ts;
+
+    elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const remain = Math.max(0, GAME_SECONDS - elapsed);
+    const mm = String(Math.floor(remain / 60)).padStart(2,'0');
+    const ss = String(remain % 60).padStart(2,'0');
+    timerEl.innerText = `${mm}:${ss}`;
+
+    const progPercent = Math.min(100, (elapsed / GAME_SECONDS) * 100);
+    progressBar.style.width = progPercent + '%';
+
+    const newQ = Math.floor(elapsed / QUESTION_INTERVAL);
+    if (newQ !== questionIndex && newQ < TOTAL_QUESTIONS) {
+      questionIndex = newQ;
+      spawnWave(questionIndex);
+    }
+
+    if (keys.left && !keys.right) snake.vx = -1;
+    else if (keys.right && !keys.left) snake.vx = 1;
+    else snake.vx = 0;
+
+    const targetX = snake.x + snake.vx * snake.speed * dt;
+    snake.x = Math.max(8, Math.min(width - snake.width - 8, targetX));
+
+    // update apples: if not landed, move according to speed; when reach ground set landed true and y to ground level
+    const groundY = height - 50;
+    apples.forEach(a => {
+      if (!a.landed) {
+        a.y += a.speed * dt * GRAVITY;
+        const centerY = a.y + a.r*1.0;
+        if (centerY + a.r >= groundY) {
+          a.y = groundY - a.r*2;
+          a.landed = true;
+          a.speed = 0;
+        }
+      }
+    });
+
+    obstacles.forEach(o => {
+      o.y += o.speed * dt * GRAVITY;
+    });
+
+    // collisions: apples (correct +10, wrong -5)
+    for (let i = apples.length - 1; i >= 0; i--) {
+      const a = apples[i];
+      const collided = circleRectCollide(a.x + a.r, a.y + a.r, a.r, snake.x, snake.y, snake.width, snake.height);
+      if (collided) {
+        if (a.correct) {
+          score += 10;
+          correctCount++;
+        } else {
+          score = Math.max(0, score - 5);
+        }
+        apples.splice(i,1);
+      }
+    }
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const o = obstacles[i];
+      const collided = circleRectCollide(o.x + o.r, o.y + o.r, o.r, snake.x, snake.y, snake.width, snake.height);
+      if (collided) {
+        score = Math.max(0, score - 5);
+        snake.x = Math.max(8, Math.min(width - snake.width - 8, snake.x - 30));
+        obstacles.splice(i,1);
+      }
+    }
+
+    // cleanup off-screen obstacles/apples
+    apples = apples.filter(a => a.y < height + 120);
+    obstacles = obstacles.filter(o => o.y < height + 120);
+
+    // ensure initial spawn
+    if (elapsed === 0 && questionIndex === 0 && apples.length === 0) spawnWave(0);
+
+    if (elapsed >= GAME_SECONDS) {
+      running = false;
+      onGameEnd();
+    }
+
+    drawFrame(dt);
+    scoreEl.innerText = `Score: ${score}`;
+    requestAnimationFrame(update);
+  }
+
+  function drawFrame(dt) {
+    ctx.clearRect(0,0,width,height);
+    drawBackground(dt);
+    apples.forEach(a => drawApple(a));
+    obstacles.forEach(o => drawObstacle(o));
+    drawSnake();
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.beginPath();
+    ctx.moveTo(0, height - 50);
+    ctx.lineTo(width, height - 50);
+    ctx.stroke();
+  }
+
+  function startGame() {
+    score = 0;
+    questionIndex = 0;
+    apples = [];
+    obstacles = [];
+    elapsed = 0;
+    startTime = Date.now();
+    running = true;
+    paused = false;
+    lastTime = null;
+    correctCount = 0;
+    startBtn.innerText = 'Restart';
+    pauseBtn.disabled = false;
+    downloadBtn.disabled = true;
+    spawnWave(0);
+    requestAnimationFrame(update);
+  }
+
+  function restartGame() {
+    if (confirm('Restart the game?')) startGame();
+  }
+
+  function onGameEnd() {
+    pauseBtn.disabled = true;
+    downloadBtn.disabled = false;
+    setTimeout(() => { showResult(); }, 100);
+  }
+
+  function showResult() {
+    const msg = `Game Over!\nPlayer: ${playerName}\nScore: ${score}\nCorrect: ${correctCount} / ${TOTAL_QUESTIONS}`;
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.left = 0;
+    modal.style.top = 0;
+    modal.style.right = 0;
+    modal.style.bottom = 0;
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.background = 'rgba(0,0,0,0.45)';
+    modal.style.zIndex = 9999;
+
+    modal.innerHTML = `
+      <div style="width:340px;background:white;border-radius:12px;padding:18px;text-align:center;box-shadow:0 20px 60px rgba(2,6,23,0.2)">
+        <h3 style="margin:0 0 6px;font-size:20px">Hết giờ!</h3>
+        <p style="margin:0 0 12px;color:#334155">Bạn đã chơi tốt ${playerName}! Điểm của bạn: <strong>${score}</strong>.</p>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button id="modal-download" class="btn">Download Score</button>
+          <button id="modal-replay" class="btn ghost">Chơi lại</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('modal-download').addEventListener('click', () => {
+      downloadResult();
+    });
+    document.getElementById('modal-replay').addEventListener('click', () => {
+      document.body.removeChild(modal);
+      startGame();
+    });
+  }
+
+  function downloadResult() {
+    const result = {
+      player: playerName,
+      score,
+      correct: correctCount,
+      totalQuestions: TOTAL_QUESTIONS,
+      timestamp: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pyez_score_${playerName}_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function initialRender() {
+    drawBackground(0);
+    drawSnake();
+    qTextEl.innerText = 'Nhấn Start để bắt đầu trò chơi Python!';
+  }
+  initialRender();
+
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      if (typeof r === 'number') { r = { tl: r, tr: r, br: r, bl: r }; }
+      this.beginPath();
+      this.moveTo(x + r.tl, y);
+      this.lineTo(x + w - r.tr, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+      this.lineTo(x + w, y + h - r.br);
+      this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+      this.lineTo(x + r.bl, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+      this.lineTo(x, y + r.tl);
+      this.quadraticCurveTo(x, y, x + r.tl, y);
+      this.closePath();
+    }
+  }
+})();
+</script>
+<!-- END: PyEz Learning - Snake Quiz Game (Modified) -->

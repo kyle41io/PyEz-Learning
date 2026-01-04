@@ -332,3 +332,99 @@ msgstr "Không hoạt động"
 
 msgid "Unassigned"
 msgstr "Chưa phân lớp"
+
+msgid "Progress Filter"
+msgstr "Lọc theo tiến độ"
+
+msgid "Stars Filter"
+msgstr "Lọc theo sao"
+
+msgid "Apply Filters"
+msgstr "Áp dụng bộ lọc"
+
+msgid "Reset"
+msgstr "Đặt lại"
+
+msgid "No students found"
+msgstr "Không tìm thấy học sinh"
+
+msgid "Try adjusting your filters or check back later."
+msgstr "Thử điều chỉnh bộ lọc hoặc kiểm tra lại sau."
+
+msgid "Are you sure you want to change this student's status?"
+msgstr "Bạn có chắc chắn muốn thay đổi trạng thái của học sinh này?"
+
+msgid "Are you sure you want to change this teacher's status?"
+msgstr "Bạn có chắc chắn muốn thay đổi trạng thái của giáo viên này?"
+
+msgid "Failed to update student status"
+msgstr "Không thể cập nhật trạng thái học sinh"
+
+msgid "Failed to update teacher status"
+msgstr "Không thể cập nhật trạng thái giáo viên"
+
+msgid "An error occurred"
+msgstr "Đã xảy ra lỗi"
+
+msgid "Deactivate"
+msgstr "Vô hiệu hóa"
+
+msgid "Activate"
+msgstr "Kích hoạt"
+
+msgid "All Progress"
+msgstr "Tất cả tiến độ"
+
+msgid "All Stars"
+msgstr "Tất cả sao"
+
+msgid "Select an option"
+msgstr "Chọn một tùy chọn"
+
+msgid "Select your class"
+msgstr "Chọn lớp của bạn"
+
+msgid "Select gender"
+msgstr "Chọn giới tính"
+
+msgid "Gender"
+msgstr "Giới tính"
+
+msgid "Unassigned Students"
+msgstr "Học sinh chưa phân lớp"
+
+msgid "Total Students:"
+msgstr "Tổng số học sinh:"
+
+msgid "Search by Name"
+msgstr "Tìm kiếm theo tên"
+
+msgid "Enter name or username"
+msgstr "Nhập tên hoặc tên người dùng"
+
+msgid "Status"
+msgstr "Trạng thái"
+
+msgid "Actions"
+msgstr "Hành động"
+
+msgid "Contact"
+msgstr "Liên hệ"
+
+msgid "Stats"
+msgstr "Thống kê"
+
+msgid "Create Teacher Account"
+msgstr "Tạo tài khoản giáo viên"
+
+msgid "Create Teacher"
+msgstr "Tạo giáo viên"
+
+msgid "Teachers"
+msgstr "Giáo viên"
+
+msgid "No teachers created yet."
+msgstr "Chưa tạo giáo viên nào."
+
+msgid "Teacher"
+msgstr "Giáo viên"

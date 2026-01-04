@@ -45,10 +45,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update input value
         input.value = value;
         
-        // Update button text
+        // Update button text and styling
         text.textContent = label;
-        text.classList.remove('text-gray-500', 'dark:text-gray-400');
-        text.classList.add('text-gray-900', 'dark:text-white');
+        if (value === '' || value === null || value === 'null') {
+          // Reset to placeholder style for empty values
+          text.classList.remove('text-gray-900', 'dark:text-white');
+          text.classList.add('text-gray-500', 'dark:text-gray-400');
+        } else {
+          text.classList.remove('text-gray-500', 'dark:text-gray-400');
+          text.classList.add('text-gray-900', 'dark:text-white');
+        }
         
         // Update active state
         items.forEach(i => {

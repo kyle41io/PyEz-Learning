@@ -2,18 +2,26 @@
 Management command to setup Google OAuth credentials
 Usage: python manage.py setup_google_oauth_credentials
 """
+import os
 from django.core.management.base import BaseCommand
 from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Command(BaseCommand):
     help = 'Setup Google OAuth credentials for django-allauth'
 
     def handle(self, *args, **options):
-        # Your Google OAuth credentials
-        CLIENT_ID = "743270219955-ug1ggrpibguvmf92h7327gpfthr3hnrm.apps.googleusercontent.com"
-        CLIENT_SECRET = "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"
+        # Load Google OAuth credentials from .env file
+        CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+        CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+        
+        if not CLIENT_ID or not CLIENT_SECRET:
+            self.stdout.write(self.style.ERROR('Error: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in .env file'))
+            return
         
         # Get or create the Site
         try:

@@ -3,7 +3,7 @@
 ## What has been configured:
 
 ### 1. **Google OAuth Credentials**
-   - Client ID: `743270219955-ug1ggrpibguvmf92h7327gpfthr3hnrm.apps.googleusercontent.com`
+   - Client ID: ''
    - Successfully configured in database
 
 ### 2. **Settings Configuration**
