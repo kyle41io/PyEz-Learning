@@ -32,32 +32,36 @@ def student_dashboard(request):
     from django.utils import timezone
     from datetime import timedelta
     from exams.models import ActiveExam, ExamSubmission
+    import logging
     
-    user = request.user
+    logger = logging.getLogger(__name__)
     
-    # Get real active exams based on user role
-    from django.db.models import Q
-    
-    if user.is_teacher:
-        # For teachers/admins: show all exams that are not manually ended AND within schedule
-        all_not_ended = ActiveExam.objects.filter(is_ended=False).order_by('-created_at')
+    try:
+        user = request.user
         
-        # Filter by schedule (teachers must follow schedule)
-        accessible_exams = []
-        for exam in all_not_ended:
-            if exam.is_active():  # This checks both schedule and is_ended
-                accessible_exams.append(exam)
+        # Get real active exams based on user role
+        from django.db.models import Q
         
-        active_exams = accessible_exams
-    else:
-        # For students: filter by class and time, exclude already submitted
-        submitted_exam_ids = ExamSubmission.objects.filter(student=user).values_list('exam_id', flat=True)
-        
-        # Get all active exams (not manually ended)
-        all_active = ActiveExam.objects.filter(is_ended=False).exclude(id__in=submitted_exam_ids)
-        
-        # Filter by time and access
-        accessible_exams = []
+        if user.is_teacher:
+            # For teachers/admins: show all exams that are not manually ended AND within schedule
+            all_not_ended = ActiveExam.objects.filter(is_ended=False).order_by('-created_at')
+            
+            # Filter by schedule (teachers must follow schedule)
+            accessible_exams = []
+            for exam in all_not_ended:
+                if exam.is_active():  # This checks both schedule and is_ended
+                    accessible_exams.append(exam)
+            
+            active_exams = accessible_exams
+        else:
+            # For students: filter by class and time, exclude already submitted
+            submitted_exam_ids = ExamSubmission.objects.filter(student=user).values_list('exam_id', flat=True)
+            
+            # Get all active exams (not manually ended)
+            all_active = ActiveExam.objects.filter(is_ended=False).exclude(id__in=submitted_exam_ids)
+            
+            # Filter by time and access
+            accessible_exams = []
         for exam in all_active:
             if exam.is_active() and exam.can_student_access(user):
                 accessible_exams.append(exam)
@@ -134,8 +138,13 @@ def student_dashboard(request):
             'active_exams': active_exams,
             'leaderboard': leaderboard,
         }
+        
+        return render(request, 'classroom/dashboard.html', context)
     
-    return render(request, 'classroom/dashboard.html', context)
+    except Exception as e:
+        logger.error(f"Dashboard error for user {request.user.username}: {str(e)}", exc_info=True)
+        from django.http import HttpResponse
+        return HttpResponse(f"<h1>Dashboard Error</h1><p>Error: {str(e)}</p><p>Please contact support.</p>", status=500)
 
 # 2. THE LESSON DETAIL VIEW (Placeholder to fix your error)
 def lesson_detail(request, lesson_id):
