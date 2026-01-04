@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+  <div class="bg-surface rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+    <i class="fa-solid fa-circle-check text-6xl text-green-500 mb-4"></i>
+    <h2 class="text-2xl font-bold mb-4">{% trans "Already Submitted" %}</h2>
+    <p class="text-gray-600 dark:text-gray-400 mb-6">
+      {% trans "You have already submitted this exam." %}
+    </p>
+    <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 mb-6">
+      <div class="text-3xl font-bold text-primary mb-2">{{ submission.score }}/{{ submission.total_questions }}</div>
+      <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">{% trans "Your Score" %}</div>
+      <div class="text-2xl font-bold text-yellow-500">
+        {{ submission.stars_earned }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i>
+      </div>
+      <div class="text-sm text-gray-600 dark:text-gray-400">{% trans "Stars Earned" %}</div>
+    </div>
+    <p class="text-sm text-gray-500 mb-4">{% trans "Submitted" %}: {{ submission.submitted_at|date:"M d, Y H:i" }}</p>
+    <a href="{% url 'dashboard' %}" class="inline-block px-6 py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition">
+      {% trans "Back to Dashboard" %}
+    </a>
+  </div>
+</div>
+{% endblock %}

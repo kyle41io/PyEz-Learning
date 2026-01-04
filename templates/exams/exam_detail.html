@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<!-- Navigation Warning Modal -->
+{% include 'components/confirmation_modal.html' with modal_id='leaveExamModal' title='Leave Exam?' message='If you leave now, your current progress will be cancelled and you will not be able to retake this exam. Are you sure you want to leave?' confirm_text='Leave Exam' cancel_text='Stay' %}
+
+<div class="min-h-screen flex flex-col">
+  <!-- Timer Bar (fixed at top, shown only during exam) -->
+  <div id="timer-bar" class="hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-orange-500 text-white py-4 px-6 shadow-lg z-[9999]">
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <i class="fa-solid fa-stopwatch text-2xl"></i>
+        <div>
+          <div class="text-sm opacity-90">{% trans "Time Remaining" %}</div>
+          <div id="timer-display" class="text-2xl font-bold">{{ exam.duration_minutes }}:00</div>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-sm opacity-90">{{ exam.title }}</div>
+        <div class="text-xs">{% trans "The exam will auto-submit when time expires" %}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="mb-6" id="exam-header">
+    <h2 class="text-2xl font-extrabold text-gray-800 dark:text-white">
+      {{ exam.title }}
+    </h2>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">
+      <i class="fa-solid fa-clock mr-2"></i>{% trans "Duration" %}: {{ exam.duration_minutes }} {% trans "minutes" %}
+      <span class="ml-4">
+        <i class="fa-sharp fa-solid fa-star text-yellow-400 mr-2"></i>{% trans "Max" %}: {{ exam.points_value }} {% trans "stars" %}
+      </span>
+    </p>
+  </div>
+
+  <!-- Exam Content -->
+  <div class="flex-grow flex flex-col bg-surface rounded-2xl shadow-lg p-8">
+    {% if exam.exam_type == 'multi_choice' %}
+      {% include 'components/multi_choice_test.html' with component_id='exam' quiz_data=questions points_value=exam.points_value title=exam.title on_start='startExam()' on_cancel='cancelExam()' on_submit='submitExam()' on_answer_change='updateAnsweredCount()' %}
+    {% else %}
+      {% include 'components/coding_test.html' with component_id='exam' coding_data=questions points_value=exam.points_value title=exam.title on_start='startExam()' on_cancel='cancelExam()' on_submit='submitExam()' %}
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Modal functions (must be defined before use)
+window.modalCallbacks = window.modalCallbacks || {};
+
+function showConfirmationModal(modalId, onConfirmCallback) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove('hidden');
+    window.modalCallbacks[modalId] = onConfirmCallback;
+  }
+}
+
+function hideConfirmationModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('hidden');
+    delete window.modalCallbacks[modalId];
+  }
+}
+
+function confirmModalAction(modalId) {
+  if (window.modalCallbacks[modalId]) {
+    window.modalCallbacks[modalId]();
+  }
+  hideConfirmationModal(modalId);
+}
+
+// ESC key handler
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    const modals = document.querySelectorAll('[id*="Modal"]');
+    modals.forEach(modal => {
+      if (!modal.classList.contains('hidden')) {
+        hideConfirmationModal(modal.id);
+      }
+    });
+  }
+});
+
+// Exam logic
+const examId = {{ exam.id }};
+const examType = '{{ exam.exam_type }}';
+const examDurationMinutes = {{ exam.duration_minutes }};
+let examTimer = null;
+let examTimeRemaining = examDurationMinutes * 60; // in seconds
+let examInProgress = false;
+let allowNavigation = false;
+
+function startExam() {
+  document.getElementById('exam-intro').classList.add('hidden');
+  document.getElementById('exam-content').classList.remove('hidden');
+  
+  // Hide navbar during exam
+  const navbar = document.querySelector('nav');
+  if (navbar) {
+    navbar.style.display = 'none';
+  }
+  
+  // Show timer bar and adjust header position
+  document.getElementById('timer-bar').classList.remove('hidden');
+  document.getElementById('exam-header').style.marginTop = '80px';
+  
+  // Start countdown timer
+  examInProgress = true;
+  startCountdownTimer();
+  
+  {% if exam.exam_type == 'coding' %}
+  // Initialize CodeMirror for coding exams
+  setTimeout(initializeCodeEditors, 100);
+  {% endif %}
+}
+
+function startCountdownTimer() {
+  examTimer = setInterval(() => {
+    examTimeRemaining--;
+    
+    if (examTimeRemaining <= 0) {
+      clearInterval(examTimer);
+      autoSubmitExam();
+      return;
+    }
+    
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(examTimeRemaining / 60);
+  const seconds = examTimeRemaining % 60;
+  const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  document.getElementById('timer-display').textContent = display;
+  
+  // Change color when less than 5 minutes remaining
+  const timerBar = document.getElementById('timer-bar');
+  if (examTimeRemaining <= 300) {
+    timerBar.classList.remove('from-red-500', 'to-orange-500');
+    timerBar.classList.add('from-red-700', 'to-red-500');
+  }
+  
+  // Blink when less than 1 minute
+  if (examTimeRemaining <= 60 && examTimeRemaining % 2 === 0) {
+    timerBar.style.opacity = '0.8';
+  } else {
+    timerBar.style.opacity = '1';
+  }
+}
+
+function autoSubmitExam() {
+  alert('{% trans "Time is up! Your exam will be submitted automatically." %}');
+  allowNavigation = true;
+  
+  {% if exam.exam_type == 'multi_choice' %}
+  // Collect whatever answers are available
+  const allQuestions = document.querySelectorAll('[data-question-id]');
+  const answers = {};
+  
+  allQuestions.forEach(questionDiv => {
+    const questionId = questionDiv.dataset.questionId;
+    const selected = questionDiv.querySelector('input[type="radio"]:checked');
+    if (selected) {
+      answers[questionId] = parseInt(selected.value);
+    }
+  });
+  
+  submitExamToServer(answers);
+  {% else %}
+  // For coding exams, submit whatever code is there
+  const answers = {};
+  
+  problemsData.forEach(problem => {
+    const editorData = codeEditors[problem.id];
+    if (editorData) {
+      answers[problem.id] = {
+        code: editorData.editor.getValue(),
+        passed: passedProblems.has(problem.id)
+      };
+    }
+  });
+  
+  submitExamToServer(answers);
+  {% endif %}
+}
+
+// Prevent navigation during exam
+window.addEventListener('beforeunload', function(e) {
+  if (examInProgress && !allowNavigation) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
+
+{% if exam.exam_type == 'multi_choice' %}
+function updateAnsweredCount() {
+  const allQuestions = document.querySelectorAll('[data-question-id]');
+  let answeredCount = 0;
+  
+  allQuestions.forEach(questionDiv => {
+    const questionId = questionDiv.dataset.questionId;
+    const radios = questionDiv.querySelectorAll('input[type="radio"]');
+    const isAnswered = Array.from(radios).some(radio => radio.checked);
+    if (isAnswered) answeredCount++;
+  });
+  
+  document.getElementById('exam-answered-count').textContent = answeredCount;
+  
+  const submitBtn = document.getElementById('exam-submit-btn');
+  submitBtn.disabled = answeredCount !== allQuestions.length;
+}
+
+function submitExam() {
+  const allQuestions = document.querySelectorAll('[data-question-id]');
+  const answers = {};
+  
+  allQuestions.forEach(questionDiv => {
+    const questionId = questionDiv.dataset.questionId;
+    const selected = questionDiv.querySelector('input[type="radio"]:checked');
+    if (selected) {
+      answers[questionId] = parseInt(selected.value);
+    }
+  });
+  
+  submitExamToServer(answers);
+}
+
+{% else %}
+// Coding exam functions
+const codeEditors = {};
+const problemsData = {{ questions|safe }};
+const passedProblems = new Set();
+
+function loadCodeMirror() {
+  return new Promise((resolve, reject) => {
+    if (window.CodeMirror) {
+      resolve();
+      return;
+    }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css';
+    document.head.appendChild(link);
+    
+    const themeLink = document.createElement('link');
+    themeLink.rel = 'stylesheet';
+    themeLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css';
+    document.head.appendChild(themeLink);
+    
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js';
+    script.onload = () => {
+      const pythonScript = document.createElement('script');
+      pythonScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js';
+      pythonScript.onload = resolve;
+      pythonScript.onerror = reject;
+      document.head.appendChild(pythonScript);
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+function initializeCodeEditors() {
+  loadCodeMirror().then(() => {
+    problemsData.forEach(problem => {
+      const textarea = document.getElementById(`exam-editor-${problem.id}`);
+      if (textarea && !codeEditors[problem.id]) {
+        const editor = CodeMirror.fromTextArea(textarea, {
+          mode: 'python',
+          theme: 'monokai',
+          lineNumbers: true,
+          indentUnit: 4,
+          lineWrapping: true
+        });
+        
+        codeEditors[problem.id] = {
+          editor: editor,
+          starterCode: problem.starter_code,
+          isDark: true
+        };
+      }
+    });
+  });
+}
+
+function examToggleTheme(problemId) {
+  const editorData = codeEditors[problemId];
+  if (editorData) {
+    editorData.isDark = !editorData.isDark;
+    editorData.editor.setOption('theme', editorData.isDark ? 'monokai' : 'default');
+  }
+}
+
+function examResetCode(problemId) {
+  const editorData = codeEditors[problemId];
+  if (editorData) {
+    editorData.editor.setValue(editorData.starterCode);
+  }
+}
+
+function examRunCode(problemId) {
+  const editorData = codeEditors[problemId];
+  if (!editorData) return;
+
+  const code = editorData.editor.getValue();
+  const runBtn = document.getElementById(`exam-run-btn-${problemId}`);
+  const outputDiv = document.getElementById(`exam-output-${problemId}`);
+  const outputContent = document.getElementById(`exam-output-content-${problemId}`);
+
+  runBtn.disabled = true;
+  runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>{% trans "Running..." %}';
+  
+  outputDiv.classList.remove('hidden');
+  outputContent.innerHTML = '<div class="text-yellow-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>{% trans "Executing code..." %}</div>';
+
+  // Find the problem data
+  const problem = problemsData.find(p => p.id === problemId);
+  
+  // Here you would call your backend to execute the code
+  // For now, simulate with a timeout
+  fetch('{% url "run_exam_code" exam.id %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({
+      problem_id: problemId,
+      code: code
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    displayTestResults(problemId, data);
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i>{% trans "Run & Test" %}';
+  })
+  .catch(error => {
+    outputContent.innerHTML = '<div class="text-red-500"><i class="fa-solid fa-circle-xmark mr-2"></i>{% trans "Error running code" %}</div>';
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i>{% trans "Run & Test" %}';
+  });
+}
+
+function displayTestResults(problemId, data) {
+  const outputContent = document.getElementById(`exam-output-content-${problemId}`);
+  const statusDiv = document.getElementById(`exam-status-${problemId}`);
+  
+  let html = '';
+  
+  if (data.success) {
+    passedProblems.add(problemId);
+    html = '<div class="text-green-400"><i class="fa-solid fa-circle-check mr-2"></i>{% trans "All tests passed!" %}</div>';
+    statusDiv.className = 'px-3 py-1 bg-green-500 text-white rounded-full text-sm font-bold';
+    statusDiv.textContent = '{% trans "Solved" %}';
+    updateSolvedCount();
+  } else {
+    html = '<div class="text-red-400"><i class="fa-solid fa-circle-xmark mr-2"></i>' + data.error + '</div>';
+  }
+  
+  outputContent.innerHTML = html;
+}
+
+function updateSolvedCount() {
+  document.getElementById('exam-solved-count').textContent = passedProblems.size;
+  
+  const submitBtn = document.getElementById('exam-submit-all-btn');
+  submitBtn.disabled = passedProblems.size !== problemsData.length;
+}
+
+function submitExam() {
+  const answers = {};
+  
+  problemsData.forEach(problem => {
+    const editorData = codeEditors[problem.id];
+    if (editorData) {
+      answers[problem.id] = {
+        code: editorData.editor.getValue(),
+        passed: passedProblems.has(problem.id)
+      };
+    }
+  });
+  
+  submitExamToServer(answers);
+}
+{% endif %}
+
+function submitExamToServer(answers) {
+  // Stop timer and allow navigation
+  if (examTimer) {
+    clearInterval(examTimer);
+  }
+  allowNavigation = true;
+  examInProgress = false;
+  
+  const submitBtn = document.getElementById('exam-submit-btn') || document.getElementById('exam-submit-all-btn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>{% trans "Submitting..." %}';
+  }
+  
+  fetch('{% url "submit_exam" exam.id %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({ answers: answers })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showExamResults(data);
+    } else {
+      alert('{% trans "Error" %}: ' + data.error);
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit" %}';
+      }
+    }
+  })
+  .catch(error => {
+    alert('{% trans "Error submitting exam" %}');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit" %}';
+    }
+  });
+}
+
+function showExamResults(data) {
+  const modal = document.getElementById('exam-results-modal');
+  const resultsContent = document.getElementById('exam-results-content');
+  
+  const percentage = data.percentage;
+  const passed = percentage >= 50;
+  const passedClass = passed ? 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-400';
+  const passedIcon = passed ? 'fa-circle-check' : 'fa-circle-xmark';
+  
+  resultsContent.innerHTML = `
+    <div class="text-center">
+      <div class="${passedClass} border-4 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+        <i class="fa-solid ${passedIcon} text-5xl"></i>
+      </div>
+      <h3 class="text-2xl font-bold mb-4">{% trans "Exam Submitted!" %}</h3>
+      <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 mb-6">
+        <div class="text-4xl font-black text-primary mb-2">${data.score}/${data.total}</div>
+        <div class="text-lg text-gray-600 dark:text-gray-400">${percentage}%</div>
+      </div>
+      <div class="mb-6">
+        <div class="text-3xl font-bold text-yellow-500">
+          +${data.stars_earned} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i>
+        </div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">{% trans "Stars Earned" %}</div>
+      </div>
+      <button onclick="window.location.href='{% url 'dashboard' %}'" 
+        class="w-full px-6 py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition">
+        {% trans "Back to Dashboard" %}
+      </button>
+    </div>
+  `;
+  
+  modal.classList.remove('hidden');
+}
+</script>
+{% endblock %}

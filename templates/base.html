@@ -82,7 +82,7 @@
         {% if user.is_teacher %}
         <a href="{% url 'class_management' %}" data-page="class-management"
           class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Class Management" %}</a>
-        <a href="#" data-page="teaching"
+        <a href="{% url 'teaching_content' %}" data-page="teaching-content"
           class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Teaching Content" %}</a>
         {% else %}
         {% if user.student_class %}
@@ -303,7 +303,7 @@
           isActive = true;
         } else if (page === 'progress' && currentPath.includes('/progress')) {
           isActive = true;
-        } else if (page === 'teaching' && currentPath.includes('/teaching')) {
+        } else if (page === 'teaching-content' && currentPath.includes('/teaching-content')) {
           isActive = true;
         }
 

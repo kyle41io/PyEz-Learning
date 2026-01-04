@@ -47,7 +47,12 @@
               {% elif progress.is_completed %}
                 <i class="fa-solid fa-check-circle text-green-500 mr-1"></i> {% trans "Completed" %}
               {% else %}
-                <i class="fa-solid fa-star text-yellow-400"></i> {{ lesson.points_value }} {% trans "stars" %}
+                <i class="fa-solid fa-star text-yellow-400"></i> 
+                {% if lesson.game %}
+                  {{ lesson.points_value }}+ {% trans "stars" %}
+                {% else %}
+                  {{ lesson.points_value }} {% trans "stars" %}
+                {% endif %}
               {% endif %}
             </p>
           </div>
@@ -201,7 +206,12 @@
           <div class="text-left">
             <h3 class="text-lg font-bold text-gray-800 dark:text-white">{{ lesson.title }}</h3>
             <p class="text-sm text-gray-500">
-              <i class="fa-solid fa-star text-yellow-400"></i> {{ lesson.points_value }} {% trans "stars" %}
+              <i class="fa-solid fa-star text-yellow-400"></i> 
+              {% if lesson.game %}
+                {{ lesson.points_value }}+ {% trans "stars" %}
+              {% else %}
+                {{ lesson.points_value }} {% trans "stars" %}
+              {% endif %}
             </p>
           </div>
         </div>

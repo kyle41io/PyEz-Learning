@@ -1,0 +1,130 @@
+{% load i18n %}
+
+<!-- Coding Intro Screen -->
+<div id="{{ component_id }}-intro" class="h-full flex flex-col items-center justify-center">
+  <div class="text-center max-w-2xl mx-auto p-8">
+    <div class="mb-6">
+      <i class="fa-solid fa-code text-6xl text-primary"></i>
+    </div>
+    <h3 class="text-3xl font-bold mb-4">{{ title }}</h3>
+    {% if description %}
+    <p class="text-gray-600 dark:text-gray-400 mb-6">{{ description }}</p>
+    {% endif %}
+    <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 mb-6">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-primary">{{ coding_data|length }}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">{% trans "Problems" %}</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-primary">{{ points_value }}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">{% trans "Max Stars" %} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-center">
+      <button onclick="{{ on_start }}" class="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition">
+        <i class="fa-solid fa-play mr-2"></i>{% trans "Start Coding" %}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Coding Content -->
+<div id="{{ component_id }}-content" class="hidden h-full overflow-y-auto">
+  <div class="max-w-6xl mx-auto">
+    <div class="sticky top-0 bg-surface border-b border-gray-200 dark:border-gray-700 p-4 mb-6 rounded-xl shadow-sm z-10">
+      <div class="flex justify-between items-center">
+        <div>
+          <span class="text-sm text-gray-600 dark:text-gray-400">{% trans "Solved" %}:</span>
+          <span class="font-bold text-primary"><span id="{{ component_id }}-solved-count">0</span>/{{ coding_data|length }}</span>
+        </div>
+        <button id="{{ component_id }}-submit-all-btn" onclick="{{ on_submit }}" disabled 
+          class="px-6 py-2 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit All" %}
+        </button>
+      </div>
+    </div>
+
+    <div class="space-y-8 pb-8">
+      {% for problem in coding_data %}
+      <div class="bg-surface rounded-xl shadow-lg overflow-hidden">
+        <!-- Problem Header -->
+        <div class="bg-gradient-to-r from-primary to-purple-600 text-white p-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-bold">{% trans "Problem" %} {{ forloop.counter }}: {{ problem.title }}</h3>
+            <span id="{{ component_id }}-status-{{ problem.id }}" class="px-3 py-1 bg-white/20 rounded-full text-sm font-bold backdrop-blur-sm">
+              {% trans "Not Solved" %}
+            </span>
+          </div>
+        </div>
+
+        <!-- Problem Content -->
+        <div class="p-6">
+          <!-- Description -->
+          <div class="mb-6">
+            <h4 class="text-lg font-bold mb-2">{% trans "Description" %}</h4>
+            <p class="text-gray-700 dark:text-gray-300">{{ problem.description }}</p>
+          </div>
+
+          <!-- Examples -->
+          {% if problem.examples %}
+          <div class="mb-6">
+            <h4 class="text-lg font-bold mb-2">{% trans "Examples" %}</h4>
+            <div class="space-y-3">
+              {% for example in problem.examples %}
+              <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <div class="font-mono text-sm">
+                  <div><span class="text-gray-600 dark:text-gray-400">{% trans "Input" %}:</span> <span class="text-primary">{{ example.input }}</span></div>
+                  <div><span class="text-gray-600 dark:text-gray-400">{% trans "Output" %}:</span> <span class="text-green-600 dark:text-green-400">{{ example.output }}</span></div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Code Editor -->
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="text-lg font-bold">{% trans "Your Solution" %}</h4>
+              <div class="flex gap-2">
+                <button onclick="{{ component_id }}ToggleTheme({{ problem.id }})" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-300 transition">
+                  <i class="fa-solid fa-moon"></i>
+                </button>
+                <button onclick="{{ component_id }}ResetCode({{ problem.id }})" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-300 transition">
+                  <i class="fa-solid fa-rotate-right mr-1"></i>{% trans "Reset" %}
+                </button>
+              </div>
+            </div>
+            <textarea id="{{ component_id }}-editor-{{ problem.id }}" class="w-full h-64 font-mono text-sm p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">{{ problem.starter_code }}</textarea>
+          </div>
+
+          <!-- Run Button -->
+          <button id="{{ component_id }}-run-btn-{{ problem.id }}" onclick="{{ component_id }}RunCode({{ problem.id }})" 
+            class="w-full px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition">
+            <i class="fa-solid fa-play mr-2"></i>{% trans "Run & Test" %}
+          </button>
+
+          <!-- Output Display -->
+          <div id="{{ component_id }}-output-{{ problem.id }}" class="hidden mt-4 bg-gray-900 text-gray-100 p-4 rounded-xl font-mono text-sm">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold">{% trans "Output" %}:</span>
+            </div>
+            <div id="{{ component_id }}-output-content-{{ problem.id }}"></div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Results Modal -->
+<div id="{{ component_id }}-results-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-surface rounded-2xl shadow-2xl max-w-md w-full p-8">
+    <div id="{{ component_id }}-results-content">
+      <!-- Results will be dynamically inserted here -->
+    </div>
+  </div>
+</div>

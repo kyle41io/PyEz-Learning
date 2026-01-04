@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <a href="{% url 'teaching_content' %}" class="inline-flex items-center text-primary hover:text-primary/80 font-bold mb-3">
+      <i class="fa-solid fa-arrow-left mr-2"></i>
+      {% trans "Back to Teaching Content" %}
+    </a>
+    <h2 class="text-2xl font-extrabold text-gray-800 dark:text-white">
+      {% trans "Create New Exam" %}
+    </h2>
+  </div>
+
+  <div class="bg-surface rounded-2xl shadow-lg p-8">
+    <form id="exam-form" method="post">
+      {% csrf_token %}
+      
+      <!-- Exam Type -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Exam Type" %}</label>
+        <select name="exam_type" id="exam-type" required 
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+          <option value="multi_choice">{% trans "Multiple Choice Test" %}</option>
+          <option value="coding">{% trans "Coding Test" %}</option>
+        </select>
+      </div>
+
+      <!-- Title -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Exam Title" %}</label>
+        <input type="text" name="title" required 
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+          placeholder="{% trans 'e.g., Python Basics Mid-term Test' %}">
+      </div>
+
+      <!-- Points Value -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Max Stars Points" %}</label>
+        <input type="number" name="points_value" value="50" min="1" required 
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+      </div>
+
+      <!-- Duration -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Duration (minutes)" %}</label>
+        <input type="number" name="duration_minutes" value="60" min="1" required 
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+      </div>
+
+      <!-- Start Time -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Start Time (optional)" %}</label>
+        <input type="datetime-local" name="start_time"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% trans "Leave empty for exam to be available immediately" %}</p>
+      </div>
+
+      <!-- End Time -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "End Time (optional)" %}</label>
+        <input type="datetime-local" name="end_time"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% trans "Leave empty for exam to always be available (you can end it manually later)" %}</p>
+      </div>
+
+      <!-- Allowed Classes -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Allowed Classes (hold Ctrl/Cmd to select multiple)" %}</label>
+        <select name="allowed_classes" multiple size="6"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+          {% for class_code, class_name in class_choices %}
+          <option value="{{ class_code }}">{{ class_name }}</option>
+          {% endfor %}
+        </select>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% trans "Leave empty to allow all students" %}</p>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Password (optional)" %}</label>
+        <input type="text" name="password" 
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+          placeholder="{% trans 'Leave empty for no password' %}">
+      </div>
+
+      <!-- Questions Section -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2">{% trans "Questions/Problems (JSON format)" %}</label>
+        <textarea name="questions" rows="10" required 
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 font-mono text-sm"
+          placeholder='{% trans "Paste questions in JSON format here..." %}'></textarea>
+        <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <details>
+            <summary class="cursor-pointer font-bold">{% trans "View JSON Format Examples" %}</summary>
+            <div class="mt-2 space-y-4">
+              <div>
+                <strong>{% trans "Multiple Choice Format" %}:</strong>
+                <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-1 overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "question": "What is Python?",
+    "options": ["A snake", "A programming language", "A food", "A game"],
+    "correct_answer": 1
+  }
+]</code></pre>
+              </div>
+              <div>
+                <strong>{% trans "Coding Format" %}:</strong>
+                <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-1 overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "title": "Sum Two Numbers",
+    "description": "Write a function that returns the sum of two numbers",
+    "starter_code": "def sum_two(a, b):\n    # Your code here\n    pass",
+    "test_cases": [
+      {"input": "1, 2", "expected": "3"},
+      {"input": "5, 7", "expected": "12"}
+    ],
+    "examples": [
+      {"input": "1, 2", "output": "3"}
+    ]
+  }
+]</code></pre>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex gap-4">
+        <a href="{% url 'teaching_content' %}" 
+          class="flex-1 px-6 py-3 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white text-center rounded-xl font-bold hover:bg-gray-400 transition">
+          {% trans "Cancel" %}
+        </a>
+        <button type="submit" 
+          class="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition">
+          <i class="fa-solid fa-plus mr-2"></i>{% trans "Create Exam" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('exam-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  const submitBtn = this.querySelector('button[type="submit"]');
+  
+  // Validate JSON
+  try {
+    JSON.parse(formData.get('questions'));
+  } catch (e) {
+    alert('{% trans "Invalid JSON format in questions field" %}');
+    return;
+  }
+  
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>{% trans "Creating..." %}';
+  
+  fetch('{% url "create_exam" %}', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('{% trans "Exam created successfully!" %}');
+      window.location.href = '{% url "teaching_content" %}';
+    } else {
+      alert('{% trans "Error" %}: ' + data.error);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>{% trans "Create Exam" %}';
+    }
+  })
+  .catch(error => {
+    alert('{% trans "Error creating exam" %}');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>{% trans "Create Exam" %}';
+  });
+});
+</script>
+{% endblock %}

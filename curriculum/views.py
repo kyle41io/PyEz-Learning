@@ -1,11 +1,15 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils.translation import activate
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from datetime import datetime, timedelta
+import fitz  # PyMuPDF
+import os
+from io import BytesIO
+import base64
 
 # LANGUAGE SWITCHER VIEW
 def set_language_view(request, language):
@@ -27,27 +31,38 @@ def student_dashboard(request):
     from django.db.models import Count, Avg, Q
     from django.utils import timezone
     from datetime import timedelta
+    from exams.models import ActiveExam, ExamSubmission
     
     user = request.user
     
-    # Mock Data for Active Exams (keeping as mock for now)
-    active_exams = [
-        {
-            'title': 'Python Basics Mid-Term',
-            'end_time': timezone.now() + timedelta(days=2),
-            'points_worth': 50
-        },
-        {
-            'title': 'Algorithm Challenge',
-            'end_time': timezone.now() + timedelta(hours=5),
-            'points_worth': 100
-        },
-        {
-            'title': 'Debug This Code',
-            'end_time': timezone.now() + timedelta(days=1),
-            'points_worth': 30
-        }
-    ]
+    # Get real active exams based on user role
+    from django.db.models import Q
+    
+    if user.is_teacher:
+        # For teachers/admins: show all exams that are not manually ended AND within schedule
+        all_not_ended = ActiveExam.objects.filter(is_ended=False).order_by('-created_at')
+        
+        # Filter by schedule (teachers must follow schedule)
+        accessible_exams = []
+        for exam in all_not_ended:
+            if exam.is_active():  # This checks both schedule and is_ended
+                accessible_exams.append(exam)
+        
+        active_exams = accessible_exams
+    else:
+        # For students: filter by class and time, exclude already submitted
+        submitted_exam_ids = ExamSubmission.objects.filter(student=user).values_list('exam_id', flat=True)
+        
+        # Get all active exams (not manually ended)
+        all_active = ActiveExam.objects.filter(is_ended=False).exclude(id__in=submitted_exam_ids)
+        
+        # Filter by time and access
+        accessible_exams = []
+        for exam in all_active:
+            if exam.is_active() and exam.can_student_access(user):
+                accessible_exams.append(exam)
+        
+        active_exams = accessible_exams
 
     from .models import Lesson, Progress
     from users.models import User
@@ -78,19 +93,26 @@ def student_dashboard(request):
         
         avg_progress = int(sum(student_progress) / len(student_progress)) if student_progress else 0
         
-        # Mock teacher exams data
-        my_exams = [
-            {'title': 'Python Basics Quiz', 'active': True, 'submissions': 15},
-            {'title': 'Algorithm Test', 'active': True, 'submissions': 8},
-            {'title': 'Final Exam', 'active': False, 'submissions': 20},
-        ]
+        # Get teacher's exams with submission counts
+        my_exams = ActiveExam.objects.filter(teacher=user).annotate(
+            submission_count=Count('submissions')
+        ).order_by('-created_at')[:3]
+        
+        # Format for template
+        my_exams_formatted = []
+        for exam in my_exams:
+            my_exams_formatted.append({
+                'title': exam.title,
+                'active': exam.is_active(),
+                'submissions': exam.submission_count
+            })
         
         context = {
             'is_teacher': True,
             'avg_progress': avg_progress,
             'students_finished': students_finished,
             'total_students': total_students,
-            'my_exams': my_exams,
+            'my_exams': my_exams_formatted,
             'active_exams': active_exams,
             'leaderboard': leaderboard,
         }
@@ -609,25 +631,44 @@ def submit_quiz(request, lesson_id):
             student=request.user,
             lesson=lesson
         )
+        
+        # Track if quiz was already passed before this submission
+        was_quiz_passed_before = progress.quiz_passed
+        
         progress.quiz_score = correct_count
         progress.quiz_passed = all_correct
         
         # Check if lesson should be completed
+        has_quiz = lesson.quiz and len(lesson.quiz) > 0
         has_code_test = lesson.coding and len(lesson.coding) > 0
-        if has_code_test:
+        
+        lesson_completed_now = False
+        points_earned = 0
+        
+        # Award 10 points for passing quiz for the first time
+        if progress.quiz_passed and not was_quiz_passed_before:
+            points_earned = 10
+            request.user.star_points += 10
+            request.user.save()
+        
+        if has_quiz and has_code_test:
             # Need both quiz and code test to complete
             if progress.quiz_passed and progress.code_test_passed:
-                progress.is_completed = True
-                # Award points
-                request.user.star_points += lesson.points_value
-                request.user.save()
-        else:
+                if not progress.is_completed:
+                    progress.is_completed = True
+                    lesson_completed_now = True
+        elif has_quiz and not has_code_test:
             # Only quiz, complete if passed
             if progress.quiz_passed:
-                progress.is_completed = True
-                # Award points
-                request.user.star_points += lesson.points_value
-                request.user.save()
+                if not progress.is_completed:
+                    progress.is_completed = True
+                    lesson_completed_now = True
+        elif not has_quiz and has_code_test:
+            # Only coding test (shouldn't happen but handle it)
+            if progress.code_test_passed:
+                if not progress.is_completed:
+                    progress.is_completed = True
+                    lesson_completed_now = True
         
         progress.save()
         
@@ -651,8 +692,8 @@ def submit_quiz(request, lesson_id):
             'total': total_questions,
             'passed': all_correct,
             'results': results,
-            'lesson_completed': progress.is_completed,
-            'points_earned': lesson.points_value if progress.is_completed else 0
+            'points_earned': points_earned,
+            'lesson_completed': lesson_completed_now
         })
         
     except Lesson.DoesNotExist:
@@ -734,3 +775,323 @@ def serve_game(request, game_name):
     rendered_game = template.render(context)
     
     return HttpResponse(rendered_game, content_type='text/html')
+
+
+# 9. RUN CODE VIEW (Execute Python code and test against test cases)
+@login_required(login_url='signin')
+def run_code(request, lesson_id):
+    from django.http import JsonResponse
+    from .models import Lesson
+    import json
+    import sys
+    from io import StringIO
+    import traceback
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+    
+    if request.user.role != 'student':
+        return JsonResponse({'success': False, 'error': 'Only students can run code'}, status=403)
+    
+    try:
+        lesson = Lesson.objects.get(id=lesson_id)
+        data = json.loads(request.body)
+        problem_id = data.get('problem_id')
+        code = data.get('code', '')
+        
+        # Get coding data
+        coding_data = lesson.coding
+        if not coding_data:
+            return JsonResponse({'success': False, 'error': 'No coding data found'}, status=404)
+        
+        # Find the problem
+        problem = None
+        for p in coding_data:
+            if p['question_id'] == problem_id:
+                problem = p
+                break
+        
+        if not problem:
+            return JsonResponse({'success': False, 'error': 'Problem not found'}, status=404)
+        
+        # Run test cases
+        test_cases = problem.get('test_cases', [])
+        results = []
+        
+        for i, test_case in enumerate(test_cases):
+            test_input = test_case.get('input', '')
+            expected_output = test_case.get('expected_output', '').strip()
+            
+            try:
+                # Create StringIO objects to capture input/output
+                old_stdin = sys.stdin
+                old_stdout = sys.stdout
+                
+                sys.stdin = StringIO(test_input)
+                sys.stdout = StringIO()
+                
+                # Create a clean namespace for execution
+                exec_namespace = {}
+                
+                # Execute the code
+                exec(code, exec_namespace)
+                
+                # Get the output
+                actual_output = sys.stdout.getvalue().strip()
+                
+                # Restore stdin/stdout
+                sys.stdin = old_stdin
+                sys.stdout = old_stdout
+                
+                # Compare outputs
+                passed = actual_output == expected_output
+                
+                results.append({
+                    'passed': passed,
+                    'input': test_input,
+                    'expected': expected_output,
+                    'actual': actual_output
+                })
+                
+            except Exception as e:
+                # Restore stdin/stdout in case of error
+                sys.stdin = old_stdin
+                sys.stdout = old_stdout
+                
+                error_msg = str(e)
+                error_trace = traceback.format_exc()
+                
+                results.append({
+                    'passed': False,
+                    'input': test_input,
+                    'expected': expected_output,
+                    'actual': f'Error: {error_msg}'
+                })
+        
+        return JsonResponse({
+            'success': True,
+            'results': results
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error executing code',
+            'details': str(e)
+        }, status=500)
+
+
+# 10. SUBMIT CODING VIEW (Submit all coding problems and unlock next lesson)
+@login_required(login_url='signin')
+def submit_coding(request, lesson_id):
+    from django.http import JsonResponse
+    from .models import Lesson, Progress
+    import json
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+    
+    if request.user.role != 'student':
+        return JsonResponse({'success': False, 'error': 'Only students can submit coding'}, status=403)
+    
+    try:
+        lesson = Lesson.objects.get(id=lesson_id)
+        data = json.loads(request.body)
+        passed_problems = set(data.get('passed_problems', []))
+        
+        # Get coding data
+        coding_data = lesson.coding
+        if not coding_data:
+            return JsonResponse({'success': False, 'error': 'No coding data found'}, status=404)
+        
+        total_problems = len(coding_data)
+        all_passed = len(passed_problems) == total_problems
+        
+        # Update progress
+        progress, created = Progress.objects.get_or_create(
+            student=request.user,
+            lesson=lesson
+        )
+        # Track if coding test was already passed before this submission
+        was_code_passed_before = progress.code_test_passed
+        
+        progress.code_test_passed = all_passed
+        
+        # Check if lesson should be completed
+        has_quiz = lesson.quiz and len(lesson.quiz) > 0
+        lesson_completed_now = False
+        points_earned = 0
+        
+        # Award 10 points for passing coding test for the first time
+        if progress.code_test_passed and not was_code_passed_before:
+            points_earned = 10
+            request.user.star_points += 10
+            request.user.save()
+        
+        if has_quiz and all_passed:
+            # Need both quiz and code test to complete
+            if progress.quiz_passed and progress.code_test_passed:
+                if not progress.is_completed:
+                    progress.is_completed = True
+                    lesson_completed_now = True
+        elif not has_quiz and all_passed:
+            # Only code test, complete if passed
+            if progress.code_test_passed:
+                if not progress.is_completed:
+                    progress.is_completed = True
+                    lesson_completed_now = True
+        
+        progress.save()
+        
+        # Unlock next lesson if current is completed
+        if progress.is_completed:
+            next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
+            if next_lesson:
+                next_progress, _ = Progress.objects.get_or_create(
+                    student=request.user,
+                    lesson=next_lesson
+                )
+                next_progress.is_unlocked = True
+                next_progress.save()
+        
+        # Update student's overall progress
+        request.user.update_progress()
+        
+        return JsonResponse({
+            'success': True,
+            'passed': all_passed,
+            'solved': len(passed_problems),
+            'total': total_problems,
+            'points_earned': points_earned,
+            'lesson_completed': lesson_completed_now
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required(login_url='signin')
+def render_pdf_pages(request, lesson_id):
+    """
+    Convert PDF pages to images and return as JSON with base64-encoded images
+    """
+    try:
+        from .models import Lesson
+        
+        lesson = Lesson.objects.get(id=lesson_id)
+        
+        if not lesson.pdf_file:
+            return JsonResponse({
+                'success': False,
+                'error': 'No PDF file found for this lesson'
+            }, status=404)
+        
+        # Get the full path to the PDF file
+        pdf_path = lesson.pdf_file.path
+        
+        if not os.path.exists(pdf_path):
+            return JsonResponse({
+                'success': False,
+                'error': 'PDF file does not exist on server'
+            }, status=404)
+        
+        # Open PDF with PyMuPDF
+        doc = fitz.open(pdf_path)
+        pages_data = []
+        
+        # Convert each page to image
+        for page_num in range(len(doc)):
+            page = doc.load_page(page_num)
+            
+            # Render page to image at 2x scale for better quality
+            mat = fitz.Matrix(2, 2)
+            pix = page.get_pixmap(matrix=mat)
+            
+            # Convert to PNG bytes
+            img_bytes = pix.tobytes("png")
+            
+            # Encode to base64
+            img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+            
+            pages_data.append({
+                'page_number': page_num + 1,
+                'image': f'data:image/png;base64,{img_base64}',
+                'width': pix.width,
+                'height': pix.height
+            })
+        
+        doc.close()
+        
+        return JsonResponse({
+            'success': True,
+            'total_pages': len(pages_data),
+            'pages': pages_data
+        })
+        
+    except Lesson.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Lesson not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error rendering PDF: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url='signin')
+def teaching_content(request):
+    """View for teachers to manage their exams"""
+    if not request.user.is_teacher:
+        return redirect('dashboard')
+    
+    from django.db.models import Count
+    from exams.models import ActiveExam
+    
+    # Get all exams created by this teacher with submission counts
+    exams = ActiveExam.objects.filter(teacher=request.user).annotate(
+        submission_count=Count('submissions')
+    ).order_by('-created_at')
+    
+    context = {
+        'exams': exams,
+    }
+    return render(request, 'classroom/teaching_content.html', context)
+
+
+@login_required(login_url='signin')
+def create_exam_view(request):
+    """Wrapper for create_exam from exams app"""
+    from exams.views import create_exam
+    return create_exam(request)
+
+
+@login_required(login_url='signin')
+def teacher_exam_results_view(request, exam_id):
+    """Wrapper for teacher_exam_results from exams app"""
+    from exams.views import teacher_exam_results
+    return teacher_exam_results(request, exam_id)
+
+
+@login_required(login_url='signin')
+def end_exam_view(request, exam_id):
+    """Manually end an exam"""
+    if not request.user.is_teacher:
+        return redirect('dashboard')
+    
+    from exams.models import ActiveExam
+    from django.shortcuts import get_object_or_404
+    from django.http import JsonResponse
+    
+    exam = get_object_or_404(ActiveExam, id=exam_id, teacher=request.user)
+    exam.is_ended = True
+    exam.save()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True, 'message': 'Exam ended successfully'})
+    
+    return redirect('teaching_content')

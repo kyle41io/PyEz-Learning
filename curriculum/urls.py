@@ -12,5 +12,12 @@ urlpatterns = [
     path('class-management/<str:class_name>/', views.class_detail, name='class_detail'),
     path('toggle-student-status/<int:student_id>/', views.toggle_student_status, name='toggle_student_status'),
     path('submit-quiz/<int:lesson_id>/', views.submit_quiz, name='submit_quiz'),
+    path('run-code/<int:lesson_id>/', views.run_code, name='run_code'),
+    path('submit-coding/<int:lesson_id>/', views.submit_coding, name='submit_coding'),
+    path('render-pdf/<int:lesson_id>/', views.render_pdf_pages, name='render_pdf_pages'),
     path('game/<str:game_name>/', views.serve_game, name='serve_game'),
+    path('teaching-content/', views.teaching_content, name='teaching_content'),
+    path('teaching-content/create/', views.create_exam_view, name='create_exam'),
+    path('teaching-content/results/<int:exam_id>/', views.teacher_exam_results_view, name='teacher_exam_results'),
+    path('teaching-content/end/<int:exam_id>/', views.end_exam_view, name='end_exam'),
 ]

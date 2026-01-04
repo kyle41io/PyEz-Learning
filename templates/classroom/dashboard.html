@@ -15,14 +15,32 @@
             class="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group hover:scale-105 transition duration-300">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-20 rounded-full"></div>
 
+            <div class="mb-2">
+                {% if exam.exam_type == 'multi_choice' %}
+                <span class="px-2 py-1 bg-white/20 rounded-full text-xs font-bold">
+                    <i class="fa-solid fa-clipboard-question mr-1"></i>{% trans "Multiple Choice" %}
+                </span>
+                {% else %}
+                <span class="px-2 py-1 bg-white/20 rounded-full text-xs font-bold">
+                    <i class="fa-solid fa-code mr-1"></i>{% trans "Coding Test" %}
+                </span>
+                {% endif %}
+            </div>
+
             <h3 class="text-xl font-bold mb-1">{{ exam.title }}</h3>
+            {% if exam.end_time %}
             <p class="text-sm opacity-90 mb-4">{% trans "Ends" %}: {{ exam.end_time|date:"M d, H:i" }}</p>
+            {% elif exam.start_time %}
+            <p class="text-sm opacity-90 mb-4">{% trans "Started" %}: {{ exam.start_time|date:"M d, H:i" }}</p>
+            {% else %}
+            <p class="text-sm opacity-90 mb-4">{% trans "Available Now" %}</p>
+            {% endif %}
 
             <div class="flex justify-between items-end">
                 <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-bold backdrop-blur-sm">
-                    {{ exam.points_worth }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i>
+                    {{ exam.points_value }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i>
                 </span>
-                <a href="#"
+                <a href="{% url 'exam_detail' exam.id %}"
                     class="bg-white text-red-500 px-4 py-2 rounded-lg font-bold shadow hover:bg-gray-100 transition">
                     {% trans "Start Now" %}
                 </a>

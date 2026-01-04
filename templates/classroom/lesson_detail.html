@@ -102,6 +102,7 @@
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p class="text-gray-600 dark:text-gray-400">{% trans "Loading PDF..." %}</p>
           </div>
+          <div id="pdf-pages" class="space-y-4"></div>
         </div>
       </div>
 
@@ -152,7 +153,7 @@
               </div>
               <div>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{% trans "Points" %}</p>
-                <p class="text-2xl font-bold text-primary">{{ lesson.points_value }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></p>
+                <p class="text-2xl font-bold text-primary">10 <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></p>
               </div>
             </div>
           </div>
@@ -257,8 +258,8 @@
       <!-- Coding Test -->
       <div id="code-intro" class="h-full flex flex-col items-center justify-center">
         <div class="text-center max-w-2xl">
-          <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fa-solid fa-code text-4xl text-purple-600"></i>
+          <div class="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-code text-4xl text-purple-600 dark:text-purple-400"></i>
           </div>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Coding Challenge" %}</h3>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
@@ -267,33 +268,156 @@
           <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div>
-                <p class="text-sm text-gray-500 mb-1">{% trans "Problems" %}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{% trans "Problems" %}</p>
                 <p class="text-2xl font-bold text-primary">{{ category_content|length }}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-500 mb-1">{% trans "Difficulty" %}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{% trans "Difficulty" %}</p>
                 <p class="text-2xl font-bold text-primary">{% trans "Mixed" %}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-500 mb-1">{% trans "Points" %}</p>
-                <p class="text-2xl font-bold text-primary">{{ lesson.points_value }} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{% trans "Points" %}</p>
+                <p class="text-2xl font-bold text-primary">10 <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></p>
               </div>
             </div>
           </div>
+          
+          {% if progress and progress.code_test_passed %}
+          <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6">
+            <div class="flex items-center justify-center text-green-700 dark:text-green-400">
+              <i class="fa-solid fa-circle-check text-2xl mr-3"></i>
+              <div class="text-left">
+                <p class="font-bold">{% trans "Coding Challenge Passed!" %}</p>
+                <p class="text-sm">{% trans "All test cases passed" %}</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          
           <button onclick="startCoding()"
             class="px-8 py-4 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition font-bold text-lg shadow-lg">
             <i class="fa-solid fa-play mr-2"></i>
-            {% trans "Start Coding" %}
+            {% if progress and progress.code_test_passed %}
+              {% trans "Practice Again" %}
+            {% else %}
+              {% trans "Start Coding" %}
+            {% endif %}
           </button>
         </div>
       </div>
 
-      <div id="code-content" class="hidden h-full">
-        <div class="text-center py-12">
-          <p class="text-xl text-gray-600 dark:text-gray-400">{% trans "Coding challenge functionality will be
-            implemented soon..." %}</p>
-          <pre
-            class="text-left mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto max-h-96">{{ category_content|safe }}</pre>
+      <div id="code-content" class="hidden h-full overflow-y-auto">
+        <div class="max-w-7xl mx-auto">
+          <!-- Coding Header -->
+          <div class="bg-gradient-to-r from-purple-500 to-violet-600 rounded-xl p-6 mb-6 text-white shadow-lg">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-2xl font-bold mb-2">{{ lesson.title }} - {% trans "Coding Challenge" %}</h3>
+                <p class="opacity-90">{% trans "Write Python code to solve the problems below" %}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm opacity-90">{% trans "Progress" %}</p>
+                <p class="text-3xl font-bold"><span id="solved-count">0</span>/{{ category_content|length }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coding Problems -->
+          {% for problem in category_content %}
+          <div class="bg-surface rounded-xl shadow-lg mb-6 border-2 border-gray-200 dark:border-gray-700" data-problem-id="{{ problem.question_id }}">
+            
+            <!-- Problem Header -->
+            <div class="bg-purple-50 dark:bg-purple-900/20 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xl font-bold text-gray-800 dark:text-white">
+                  <i class="fa-solid fa-code text-purple-500 mr-2"></i>
+                  {% trans "Problem" %} {{ forloop.counter }}
+                </h4>
+                <div id="status-{{ problem.question_id }}" class="hidden">
+                  <span class="px-3 py-1 rounded-full text-sm font-bold">
+                    <i class="fa-solid fa-circle-check mr-1"></i>
+                    {% trans "Passed" %}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Problem Description -->
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h5 class="font-bold text-gray-700 dark:text-gray-300 mb-3">{% trans "Description:" %}</h5>
+              <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono">{{ problem.question }}</pre>
+              </div>
+            </div>
+
+            <!-- Code Editor -->
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-3">
+                <h5 class="font-bold text-gray-700 dark:text-gray-300">{% trans "Your Code:" %}</h5>
+                <div class="flex items-center space-x-2">
+                  <button onclick="resetCode({{ problem.question_id }})" 
+                    class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>
+                    {% trans "Reset" %}
+                  </button>
+                  <button onclick="toggleTheme({{ problem.question_id }})" 
+                    class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                    <i class="fa-solid fa-circle-half-stroke mr-1"></i>
+                    {% trans "Theme" %}
+                  </button>
+                </div>
+              </div>
+              
+              <!-- CodeMirror Editor -->
+              <div class="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                <textarea id="code-editor-{{ problem.question_id }}" class="hidden">{{ problem.starter_code|default:"# Viết code của bạn ở đây\n\n" }}</textarea>
+              </div>
+
+              <!-- Run Button and Output -->
+              <div class="mt-4">
+                <button onclick="runCode({{ problem.question_id }})" 
+                  id="run-btn-{{ problem.question_id }}"
+                  class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-bold shadow-md">
+                  <i class="fa-solid fa-play mr-2"></i>
+                  {% trans "Run & Test" %}
+                </button>
+              </div>
+
+              <!-- Output Section -->
+              <div id="output-{{ problem.question_id }}" class="hidden mt-4">
+                <h5 class="font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Test Results:" %}</h5>
+                <div id="output-content-{{ problem.question_id }}" class="bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-sm">
+                </div>
+              </div>
+            </div>
+
+          </div>
+          {% endfor %}
+
+          <!-- Submit All Button -->
+          <div class="sticky bottom-0 bg-surface/95 backdrop-blur-sm p-6 rounded-xl mb-6">
+            <div class="flex items-center justify-between max-w-7xl mx-auto">
+              <button onclick="cancelCoding()" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-bold">
+                <i class="fa-solid fa-times mr-2"></i>
+                {% trans "Back" %}
+              </button>
+              <button onclick="submitAllCoding()" id="submit-all-btn" 
+                class="px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition font-bold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>
+                <i class="fa-solid fa-paper-plane mr-2"></i>
+                {% trans "Submit All" %}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coding Results Modal -->
+      <div id="coding-results-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-surface rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div id="coding-results-content" class="p-8">
+            <!-- Results will be inserted here -->
+          </div>
         </div>
       </div>
 
@@ -536,63 +660,373 @@
   function startCoding() {
     document.getElementById('code-intro').classList.add('hidden');
     document.getElementById('code-content').classList.remove('hidden');
+    
+    // Initialize CodeMirror editors after content is visible
+    {% if category == 'coding' %}
+    setTimeout(initializeCodeEditors, 100);
+    {% endif %}
   }
 
-  // PDF.js viewer - Render all pages
-  {% if category == 'pdf_file' %}
-  const url = "{{ category_content.url }}";
-  let pdfDoc = null;
-  const scale = 1.5;
-  const container = document.getElementById('pdf-container');
-  const loadingDiv = document.getElementById('pdf-loading');
+  function cancelCoding() {
+    document.getElementById('code-intro').classList.remove('hidden');
+    document.getElementById('code-content').classList.add('hidden');
+  }
 
-  // Load PDF.js from CDN
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-  script.onload = function () {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  {% if category == 'coding' %}
+  // CodeMirror editors storage
+  const codeEditors = {};
+  const problemsData = {{ category_content|safe }};
+  const passedProblems = new Set();
 
-    // Load the PDF
-    pdfjsLib.getDocument(url).promise.then(function (pdf) {
-      pdfDoc = pdf;
-      const numPages = pdf.numPages;
+  // Load CodeMirror from CDN
+  function loadCodeMirror() {
+    return new Promise((resolve, reject) => {
+      // Load CSS
+      const cssLink = document.createElement('link');
+      cssLink.rel = 'stylesheet';
+      cssLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css';
+      document.head.appendChild(cssLink);
 
-      // Remove loading indicator
-      loadingDiv.remove();
+      const themeLink = document.createElement('link');
+      themeLink.rel = 'stylesheet';
+      themeLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css';
+      document.head.appendChild(themeLink);
 
-      // Render all pages
-      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-        renderPage(pageNum);
-      }
-    }).catch(function (error) {
-      console.error('Error loading PDF:', error);
-      container.innerHTML = '<div class="text-center py-12"><p class="text-red-500 font-bold">Error loading PDF. Please try downloading it instead.</p></div>';
-    });
-  };
-  document.head.appendChild(script);
-
-  function renderPage(num) {
-    pdfDoc.getPage(num).then(function (page) {
-      const viewport = page.getViewport({ scale: scale });
-
-      // Create canvas for this page
-      const canvas = document.createElement('canvas');
-      canvas.className = 'pdf-page-canvas mx-auto';
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      const ctx = canvas.getContext('2d');
-      const renderContext = {
-        canvasContext: ctx,
-        viewport: viewport
+      // Load JS
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js';
+      script.onload = () => {
+        const pythonMode = document.createElement('script');
+        pythonMode.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js';
+        pythonMode.onload = resolve;
+        pythonMode.onerror = reject;
+        document.head.appendChild(pythonMode);
       };
-
-      // Render page
-      page.render(renderContext).promise.then(function () {
-        container.appendChild(canvas);
-      });
+      script.onerror = reject;
+      document.head.appendChild(script);
     });
   }
+
+  function initializeCodeEditors() {
+    loadCodeMirror().then(() => {
+      problemsData.forEach(problem => {
+        const textarea = document.getElementById(`code-editor-${problem.question_id}`);
+        if (textarea && !codeEditors[problem.question_id]) {
+          const editor = CodeMirror.fromTextArea(textarea, {
+            mode: 'python',
+            theme: 'default',
+            lineNumbers: true,
+            indentUnit: 4,
+            indentWithTabs: false,
+            lineWrapping: true,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            styleActiveLine: true,
+            viewportMargin: Infinity
+          });
+          editor.setSize(null, '300px');
+          codeEditors[problem.question_id] = {
+            editor: editor,
+            theme: 'default',
+            starterCode: problem.starter_code || '# Viết code của bạn ở đây\n\n'
+          };
+        }
+      });
+    }).catch(error => {
+      console.error('Failed to load CodeMirror:', error);
+      alert('Failed to load code editor. Please refresh the page.');
+    });
+  }
+
+  function toggleTheme(problemId) {
+    const editorData = codeEditors[problemId];
+    if (editorData) {
+      editorData.theme = editorData.theme === 'default' ? 'monokai' : 'default';
+      editorData.editor.setOption('theme', editorData.theme);
+    }
+  }
+
+  function resetCode(problemId) {
+    const editorData = codeEditors[problemId];
+    if (editorData) {
+      editorData.editor.setValue(editorData.starterCode);
+    }
+  }
+
+  function runCode(problemId) {
+    const editorData = codeEditors[problemId];
+    if (!editorData) return;
+
+    const code = editorData.editor.getValue();
+    const runBtn = document.getElementById(`run-btn-${problemId}`);
+    const outputDiv = document.getElementById(`output-${problemId}`);
+    const outputContent = document.getElementById(`output-content-${problemId}`);
+
+    // Show loading state
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>{% trans "Running..." %}';
+    
+    outputDiv.classList.remove('hidden');
+    outputContent.innerHTML = '<div class="text-yellow-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>{% trans "Executing code and running tests..." %}</div>';
+
+    // Submit to server
+    fetch('{% url "run_code" lesson.id %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        problem_id: problemId,
+        code: code
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      displayTestResults(problemId, data);
+      runBtn.disabled = false;
+      runBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i>{% trans "Run & Test" %}';
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      outputContent.innerHTML = '<div class="text-red-400"><i class="fa-solid fa-circle-xmark mr-2"></i>{% trans "Error executing code" %}</div>';
+      runBtn.disabled = false;
+      runBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i>{% trans "Run & Test" %}';
+    });
+  }
+
+  function displayTestResults(problemId, data) {
+    const outputContent = document.getElementById(`output-content-${problemId}`);
+    const statusDiv = document.getElementById(`status-${problemId}`);
+    
+    let html = '';
+    
+    if (data.success) {
+      const allPassed = data.results.every(r => r.passed);
+      
+      if (allPassed) {
+        passedProblems.add(problemId);
+        statusDiv.classList.remove('hidden');
+        statusDiv.querySelector('span').className = 'px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+        html += '<div class="text-green-400 font-bold mb-4"><i class="fa-solid fa-circle-check mr-2"></i>{% trans "All test cases passed!" %}</div>';
+      } else {
+        html += '<div class="text-red-400 font-bold mb-4"><i class="fa-solid fa-circle-xmark mr-2"></i>{% trans "Some test cases failed" %}</div>';
+      }
+      
+      data.results.forEach((result, index) => {
+        const icon = result.passed ? '<i class="fa-solid fa-circle-check text-green-400"></i>' : '<i class="fa-solid fa-circle-xmark text-red-400"></i>';
+        const statusText = result.passed ? '<span class="text-green-400">PASSED</span>' : '<span class="text-red-400">FAILED</span>';
+        
+        html += `
+          <div class="mb-4 pb-4 border-b border-gray-700">
+            <div class="flex items-center mb-2">
+              ${icon}
+              <span class="ml-2 font-bold">Test Case ${index + 1}: ${statusText}</span>
+            </div>
+            <div class="ml-6 text-sm">
+              <div class="mb-1"><span class="text-gray-400">Input:</span> <span class="text-blue-300">${result.input || '(no input)'}</span></div>
+              <div class="mb-1"><span class="text-gray-400">Expected:</span> <span class="text-green-300">${result.expected}</span></div>
+              <div><span class="text-gray-400">Got:</span> <span class="${result.passed ? 'text-green-300' : 'text-red-300'}">${result.actual}</span></div>
+            </div>
+          </div>
+        `;
+      });
+      
+      updateSolvedCount();
+    } else {
+      html = `<div class="text-red-400"><i class="fa-solid fa-circle-xmark mr-2"></i>${data.error}</div>`;
+      if (data.details) {
+        html += `<pre class="mt-2 text-red-300 text-xs">${data.details}</pre>`;
+      }
+    }
+    
+    outputContent.innerHTML = html;
+  }
+
+  function updateSolvedCount() {
+    document.getElementById('solved-count').textContent = passedProblems.size;
+    
+    // Enable/disable submit button
+    const submitBtn = document.getElementById('submit-all-btn');
+    submitBtn.disabled = passedProblems.size !== problemsData.length;
+  }
+
+  function submitAllCoding() {
+    const modal = document.getElementById('coding-results-modal');
+    const resultsContent = document.getElementById('coding-results-content');
+    
+    resultsContent.innerHTML = '<div class="text-center"><i class="fa-solid fa-spinner fa-spin text-4xl text-primary mb-4"></i><p>{% trans "Submitting..." %}</p></div>';
+    modal.classList.remove('hidden');
+    
+    // Submit to server
+    fetch('{% url "submit_coding" lesson.id %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        passed_problems: Array.from(passedProblems)
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      showCodingResults(data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      resultsContent.innerHTML = '<div class="text-center text-red-500"><i class="fa-solid fa-circle-xmark text-4xl mb-4"></i><p>{% trans "Error submitting coding challenge" %}</p></div>';
+    });
+  }
+
+  function showCodingResults(data) {
+    const resultsContent = document.getElementById('coding-results-content');
+    
+    const passedClass = data.passed ? 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-400';
+    const passedIcon = data.passed ? 'fa-circle-check' : 'fa-circle-xmark';
+    const passedText = data.passed ? '{% trans "Congratulations! Challenge Completed!" %}' : '{% trans "Keep Practicing" %}';
+    
+    let resultsHTML = `
+      <div class="text-center mb-8">
+        <div class="w-24 h-24 ${passedClass} rounded-full flex items-center justify-center mx-auto mb-4 border-4">
+          <i class="fa-solid ${passedIcon} text-5xl"></i>
+        </div>
+        <h3 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">${passedText}</h3>
+        <p class="text-xl text-gray-600 dark:text-gray-400">
+          {% trans "Problems Solved:" %} <span class="font-bold text-primary">${data.solved}/${data.total}</span>
+        </p>
+      </div>
+    `;
+    
+    if (data.passed) {
+      resultsHTML += `
+        <div class="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-6 mb-6">
+          <div class="flex items-center text-green-700 dark:text-green-400">
+            <i class="fa-solid fa-star text-3xl mr-4"></i>
+            <div>
+              <p class="font-bold text-lg">{% trans "Points Earned!" %}</p>
+              <p class="text-2xl font-bold">${data.points_earned} <i class="fa-sharp fa-solid fa-star text-yellow-400"></i></p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      if (data.lesson_completed) {
+        resultsHTML += `
+          <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6 mb-6">
+            <div class="flex items-center text-blue-700 dark:text-blue-400">
+              <i class="fa-solid fa-unlock text-3xl mr-4"></i>
+              <div>
+                <p class="font-bold text-lg">{% trans "Lesson Completed!" %}</p>
+                <p class="text-sm">{% trans "Next lesson unlocked" %}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    resultsHTML += `
+      <div class="flex gap-4">
+        <button onclick="closeCodingResults()" class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-bold">
+          <i class="fa-solid fa-check mr-2"></i>
+          {% trans "Done" %}
+        </button>
+      </div>
+    `;
+    
+    resultsContent.innerHTML = resultsHTML;
+  }
+
+  function closeCodingResults() {
+    const modal = document.getElementById('coding-results-modal');
+    modal.classList.add('hidden');
+    location.reload();
+  }
+  {% endif %}
+
+  // Server-side PDF rendering using PyMuPDF
+  {% if category == 'pdf_file' %}
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, starting PDF viewer script');
+    const loadingDiv = document.getElementById('pdf-loading');
+    const pagesContainer = document.getElementById('pdf-pages');
+
+    if (!loadingDiv) {
+      console.error('Loading div not found');
+      return;
+    }
+    
+    if (!pagesContainer) {
+      console.error('Pages container not found');
+      return;
+    }
+
+    console.log('Elements found, fetching PDF from:', '{% url "render_pdf_pages" lesson.id %}');
+
+    // Fetch rendered PDF pages from server
+    fetch('{% url "render_pdf_pages" lesson.id %}')
+      .then(response => {
+        console.log('Response received, status:', response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Data received:', data);
+        if (data.success) {
+          console.log('PDF loaded successfully, rendering', data.total_pages, 'pages');
+          // Hide loading indicator
+          loadingDiv.style.display = 'none';
+          
+          // Display all pages
+          data.pages.forEach((page, index) => {
+            console.log('Rendering page', index + 1);
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'bg-white rounded-lg shadow-lg p-2 mx-auto mb-4';
+            pageDiv.style.maxWidth = '100%';
+            
+            const img = document.createElement('img');
+            img.src = page.image;
+            img.alt = `Page ${page.page_number}`;
+            img.className = 'w-full h-auto rounded';
+            img.style.display = 'block';
+            img.onerror = function() {
+              console.error('Failed to load image for page', page.page_number);
+            };
+            img.onload = function() {
+              console.log('Successfully loaded page', page.page_number);
+            };
+            
+            pageDiv.appendChild(img);
+            pagesContainer.appendChild(pageDiv);
+          });
+        } else {
+          console.error('Server returned error:', data.error);
+          loadingDiv.innerHTML = `
+            <div class="text-center py-12">
+              <i class="fa-solid fa-circle-exclamation text-5xl text-red-500 mb-4"></i>
+              <p class="text-red-500 font-bold">${data.error}</p>
+              <p class="text-gray-600 dark:text-gray-400 mt-2">{% trans "Please try downloading the PDF instead." %}</p>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading PDF:', error);
+        loadingDiv.innerHTML = `
+          <div class="text-center py-12">
+            <i class="fa-solid fa-circle-exclamation text-5xl text-red-500 mb-4"></i>
+            <p class="text-red-500 font-bold">{% trans "Error loading PDF" %}</p>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">${error.message}</p>
+            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+              {% trans "Retry" %}
+            </button>
+          </div>
+        `;
+      });
+  });
   {% endif %}
 </script>
 
