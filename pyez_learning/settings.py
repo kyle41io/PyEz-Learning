@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    # Cloudinary for media storage
+    'cloudinary_storage',
+    'cloudinary',
     # Your Apps
     'users',
     'curriculum',
@@ -152,10 +155,18 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# Cloudinary configuration for media files in production
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'PREFIX': '',  # No prefix - Cloudinary handles full URL
+}
+
 # WhiteNoise configuration for production
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -164,8 +175,10 @@ STORAGES = {
 
 AUTH_USER_MODEL = 'users.User'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Media files - Cloudinary generates full URLs, so MEDIA_URL is not used
+# Set to Cloudinary base URL to ensure proper URL generation
+MEDIA_URL = 'https://res.cloudinary.com/dua0bun2i/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Only used for local fallback
 
 # Login/Logout URLs
 LOGIN_URL = 'signin'

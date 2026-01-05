@@ -726,8 +726,8 @@ def serve_game(request, game_name):
     if game_name not in allowed_games:
         return HttpResponse("Game not found", status=404)
     
-    # Build path to game file
-    game_path = os.path.join(settings.MEDIA_ROOT, 'games', game_name)
+        # Build path to game file in static folder
+    game_path = os.path.join(settings.BASE_DIR, 'static', 'games', game_name)
     
     # Check if file exists
     if not os.path.exists(game_path):
@@ -987,6 +987,8 @@ def render_pdf_pages(request, lesson_id):
     """
     try:
         from .models import Lesson
+        import requests
+        from io import BytesIO
         
         lesson = Lesson.objects.get(id=lesson_id)
         
@@ -996,17 +998,21 @@ def render_pdf_pages(request, lesson_id):
                 'error': 'No PDF file found for this lesson'
             }, status=404)
         
-        # Get the full path to the PDF file
-        pdf_path = lesson.pdf_file.path
+        # Get PDF from Cloudinary URL
+        pdf_url = lesson.pdf_file.url
         
-        if not os.path.exists(pdf_path):
+        # Download PDF from Cloudinary
+        response = requests.get(pdf_url, timeout=10)
+        if response.status_code != 200:
             return JsonResponse({
                 'success': False,
-                'error': 'PDF file does not exist on server'
+                'error': 'Failed to download PDF from cloud storage'
             }, status=404)
         
-        # Open PDF with PyMuPDF
-        doc = fitz.open(pdf_path)
+        pdf_bytes = BytesIO(response.content)
+        
+        # Open PDF with PyMuPDF from bytes
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         pages_data = []
         
         # Convert each page to image

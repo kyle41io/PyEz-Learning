@@ -23,7 +23,7 @@ class User(AbstractUser):
     star_points = models.IntegerField(default=0)
     progress_percent = models.IntegerField(default=0, help_text='Learning progress percentage (0-100)')
     google_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
-    profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True, max_length=500)
     bio = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)

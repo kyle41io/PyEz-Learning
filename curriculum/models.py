@@ -15,7 +15,13 @@ class Lesson(models.Model):
     points_value = models.IntegerField(default=20, help_text="Stars awarded for completing this lesson")
     # Files
     video = models.CharField(max_length=20, blank=True, null=True, help_text="YouTube video ID")
-    pdf_file = models.FileField(upload_to='lessons/docs/', blank=True, null=True)
+    pdf_file = models.FileField(
+        upload_to='lessons/docs/', 
+        blank=True, 
+        null=True, 
+        max_length=500,
+        storage=lambda: __import__('curriculum.storage', fromlist=['PdfCloudinaryStorage']).PdfCloudinaryStorage()
+    )
     game = models.CharField(max_length=100, blank=True, help_text="Name of game file in static")
 
     # Static Tests (JSON for flexibility)
