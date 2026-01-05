@@ -48,10 +48,12 @@
                 <i class="fa-solid fa-check-circle text-green-500 mr-1"></i> {% trans "Completed" %}
               {% else %}
                 <i class="fa-solid fa-star text-yellow-400"></i> 
-                {% if lesson.game %}
-                  {{ lesson.points_value }}+ {% trans "stars" %}
-                {% else %}
-                  {{ lesson.points_value }} {% trans "stars" %}
+                {% if lesson.quiz and lesson.quiz|length > 0 and lesson.coding and lesson.coding|length > 0 %}
+                  20{% if lesson.game %}+{% endif %} {% trans "stars" %}
+                {% elif lesson.quiz and lesson.quiz|length > 0 or lesson.coding and lesson.coding|length > 0 %}
+                  10{% if lesson.game %}+{% endif %} {% trans "stars" %}
+                {% elif lesson.game %}
+                  {% trans "Bonus stars" %}
                 {% endif %}
               {% endif %}
             </p>
@@ -207,10 +209,12 @@
             <h3 class="text-lg font-bold text-gray-800 dark:text-white">{{ lesson.title }}</h3>
             <p class="text-sm text-gray-500">
               <i class="fa-solid fa-star text-yellow-400"></i> 
-              {% if lesson.game %}
-                {{ lesson.points_value }}+ {% trans "stars" %}
-              {% else %}
-                {{ lesson.points_value }} {% trans "stars" %}
+              {% if lesson.quiz and lesson.quiz|length > 0 and lesson.coding and lesson.coding|length > 0 %}
+                20{% if lesson.game %}+{% endif %} {% trans "stars" %}
+              {% elif lesson.quiz and lesson.quiz|length > 0 or lesson.coding and lesson.coding|length > 0 %}
+                10{% if lesson.game %}+{% endif %} {% trans "stars" %}
+              {% elif lesson.game %}
+                {% trans "Bonus stars" %}
               {% endif %}
             </p>
           </div>

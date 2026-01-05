@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+{% load tz %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-4xl font-extrabold text-gray-800 dark:text-white mb-2">{% trans "My Progress" %}</h1>
+        <p class="text-gray-500">{% trans "Track your learning journey and achievements" %}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overall Progress Card -->
+  <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl shadow-xl p-8 mb-8 border border-primary/20">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+      <div class="flex-1">
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Overall Progress" %}</h2>
+        <div class="space-y-3">
+          <div class="flex items-center justify-start gap-3">
+            <span class="text-gray-600 dark:text-gray-300 font-medium">{% trans "Completed Lessons" %}</span>
+            <span class="text-xl font-bold text-primary">{{ completed_lessons_count }} / {{ total_lessons }}</span>
+          </div>
+          <div class="flex items-center justify-start gap-3">
+            <span class="text-gray-600 dark:text-gray-300 font-medium">{% trans "Exams Taken" %}</span>
+            <span class="text-xl font-bold text-primary">{{ total_exams_taken }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Circular Progress -->
+      <div class="flex-1 flex justify-center">
+        <div class="relative w-40 h-40 rounded-full flex items-center justify-center"
+          style="background: conic-gradient(var(--primary-color) {{ progress_percent }}%, #e5e7eb 0);">
+          <div class="bg-surface w-32 h-32 rounded-full flex items-center justify-center shadow-inner">
+            <div class="text-center">
+              <span class="text-4xl font-bold text-primary">{{ progress_percent }}%</span>
+              <p class="text-xs text-gray-500 mt-1">{% trans "Complete" %}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex-1 flex justify-end">
+        <div class="bg-surface px-6 py-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+          <div class="flex flex-col items-center">
+            <div class="flex items-center space-x-2 mb-1">
+              <i class="fa-sharp fa-solid fa-star text-yellow-400 text-xl"></i>
+              <span class="text-2xl font-bold text-primary">{{ user_stars }}</span>
+              <span class="text-sm text-gray-500">{% trans "Stars" %}</span>
+            </div>
+            <div class="text-xs text-gray-500 font-medium">
+              {% trans "Rank" %} #{{ student_rank }} / {{ total_students }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- Left Column: Curriculum Progress -->
+    <div class="space-y-6">
+      <div class="bg-surface rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center space-x-2 mb-6">
+          <i class="fa-solid fa-book text-primary text-xl"></i>
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{% trans "Curriculum Progress" %}</h2>
+        </div>
+
+        <!-- Lessons by Chapter -->
+        <div class="space-y-6">
+          {% for chapter_data in lessons_progress %}
+          <div class="border-l-4 border-primary/30 pl-4">
+            <h3 class="text-lg font-bold text-gray-700 dark:text-gray-200 mb-3">
+              {% if chapter_data.chapter.title %}
+                {{ chapter_data.chapter.title }}
+              {% else %}
+                {% trans "All Lessons" %}
+              {% endif %}
+            </h3>
+            <div class="space-y-3">
+              {% for lesson_data in chapter_data.lessons %}
+              <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 hover:shadow-md transition">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-2 mb-1">
+                      <span class="text-xs font-bold text-gray-400">{% trans "Lesson" %} {{ lesson_data.lesson.order }}</span>
+                      {% if lesson_data.is_completed %}
+                      <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-xs font-bold">
+                        <i class="fa-solid fa-check mr-1"></i>{% trans "Completed" %}
+                      </span>
+                      {% else %}
+                      <span class="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-500 rounded-full text-xs font-bold">
+                        {% trans "In Progress" %}
+                      </span>
+                      {% endif %}
+                    </div>
+                    <h4 class="font-bold text-gray-800 dark:text-white">{{ lesson_data.lesson.title }}</h4>
+                  </div>
+                  <span class="text-yellow-400 text-sm font-bold">
+                    <i class="fa-solid fa-star"></i> 
+                    {% if lesson_data.lesson.quiz and lesson_data.lesson.quiz|length > 0 and lesson_data.lesson.coding and lesson_data.lesson.coding|length > 0 %}
+                      20{% if lesson_data.lesson.game %}+{% endif %}
+                    {% elif lesson_data.lesson.quiz and lesson_data.lesson.quiz|length > 0 or lesson_data.lesson.coding and lesson_data.lesson.coding|length > 0 %}
+                      10{% if lesson_data.lesson.game %}+{% endif %}
+                    {% endif %}
+                  </span>
+                </div>
+
+                <!-- Quiz & Coding Status -->
+                <div class="flex items-center space-x-4 mt-3 text-sm">
+                  {% if lesson_data.quiz_passed %}
+                  <div class="flex items-center space-x-1 text-green-600 dark:text-green-400">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span class="font-medium">{% trans "Quiz" %}</span>
+                    {% if lesson_data.quiz_passed_at %}
+                    <span class="text-xs text-gray-400 ml-1">({{ lesson_data.quiz_passed_at|date:"M d, H:i" }})</span>
+                    {% endif %}
+                  </div>
+                  {% elif lesson_data.lesson.quiz and lesson_data.lesson.quiz|length > 0 %}
+                  <div class="flex items-center space-x-1 text-gray-400">
+                    <i class="fa-solid fa-circle"></i>
+                    <span class="font-medium">{% trans "Quiz" %}</span>
+                  </div>
+                  {% endif %}
+
+                  {% if lesson_data.code_test_passed %}
+                  <div class="flex items-center space-x-1 text-green-600 dark:text-green-400">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span class="font-medium">{% trans "Coding" %}</span>
+                    {% if lesson_data.code_test_passed_at %}
+                    <span class="text-xs text-gray-400 ml-1">({{ lesson_data.code_test_passed_at|date:"M d, H:i" }})</span>
+                    {% endif %}
+                  </div>
+                  {% elif lesson_data.lesson.coding and lesson_data.lesson.coding|length > 0 %}
+                  <div class="flex items-center space-x-1 text-gray-400">
+                    <i class="fa-solid fa-circle"></i>
+                    <span class="font-medium">{% trans "Coding" %}</span>
+                  </div>
+                  {% endif %}
+                </div>
+
+                {% if lesson_data.completed_at %}
+                <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <span class="text-xs text-gray-500">
+                    <i class="fa-solid fa-clock mr-1"></i>
+                    {% trans "Completed on" %} {{ lesson_data.completed_at|date:"F d, Y \a\t H:i" }}
+                  </span>
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-8 text-gray-500">
+            <i class="fa-solid fa-book-open text-4xl mb-3 opacity-30"></i>
+            <p>{% trans "No lessons available yet" %}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Exam Results -->
+    <div class="space-y-6">
+      <div class="bg-surface rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center space-x-2 p-6 pb-4">
+          <i class="fa-solid fa-trophy text-primary text-xl"></i>
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{% trans "Exam Results" %}</h2>
+        </div>
+
+        {% if exam_results %}
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-100 dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  {% trans "Exam" %}
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  {% trans "Score" %}
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  {% trans "Stars" %}
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  {% trans "Rank" %}
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  {% trans "Date" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              {% for result in exam_results %}
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                <td class="px-6 py-4">
+                  <div>
+                    <p class="font-bold text-sm text-gray-900 dark:text-white">{{ result.exam.title }}</p>
+                    <div class="flex items-center space-x-2 mt-1">
+                      <span class="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
+                        {% if result.exam.exam_type == 'multi_choice' %}
+                          <i class="fa-solid fa-list-check mr-1"></i>{% trans "Multiple Choice" %}
+                        {% else %}
+                          <i class="fa-solid fa-code mr-1"></i>{% trans "Coding Test" %}
+                        {% endif %}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="flex flex-col items-center">
+                    <span class="text-lg font-bold text-primary">{{ result.submission.score }}/{{ result.submission.total_questions }}</span>
+                    <span class="text-xs text-gray-500 font-medium">{{ result.percentage }}%</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <span class="text-yellow-500 font-bold text-lg">
+                    <i class="fa-solid fa-star"></i> {{ result.submission.stars_earned }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="flex flex-col items-center">
+                    <div class="flex items-center space-x-2 mb-1">
+                      {% if result.rank == 1 %}
+                      <i class="fa-solid fa-trophy text-yellow-500 text-xl"></i>
+                      {% elif result.rank == 2 %}
+                      <i class="fa-solid fa-medal text-gray-400 text-xl"></i>
+                      {% elif result.rank == 3 %}
+                      <i class="fa-solid fa-medal text-orange-500 text-xl"></i>
+                      {% else %}
+                      <span class="font-bold text-primary text-lg">#{{ result.rank }}</span>
+                      {% endif %}
+                    </div>
+                    <span class="text-xs text-gray-500">
+                      {% trans "of" %} {{ result.total_participants }}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="text-sm text-gray-600 dark:text-gray-400">
+                    <div>{{ result.submission.submitted_at|date:"M d, Y" }}</div>
+                    <div class="text-xs text-gray-500">{{ result.submission.submitted_at|date:"H:i" }}</div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-gray-500 px-6">
+          <i class="fa-solid fa-clipboard-list text-5xl mb-4 opacity-30"></i>
+          <p class="text-lg font-medium mb-2">{% trans "No exams taken yet" %}</p>
+          <p class="text-sm">{% trans "Complete exams to see your results here" %}</p>
+          <a href="{% url 'dashboard' %}" 
+            class="inline-block mt-4 px-6 py-2 bg-primary text-white rounded-lg font-bold hover:shadow-lg transition">
+            {% trans "Go to Dashboard" %}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Motivational Footer -->
+  <div class="mt-8 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl p-6 text-center border border-primary/20">
+    <p class="text-lg font-bold text-gray-700 dark:text-gray-200">
+      <i class="fa-solid fa-rocket text-primary mr-2"></i>
+      {% if progress_percent == 100 %}
+        {% trans "Amazing! You've completed all lessons! Keep practicing with exams." %}
+      {% elif progress_percent >= 75 %}
+        {% trans "Great progress! You're almost there!" %}
+      {% elif progress_percent >= 50 %}
+        {% trans "You're halfway there! Keep going!" %}
+      {% elif progress_percent >= 25 %}
+        {% trans "Good start! Keep up the momentum!" %}
+      {% else %}
+        {% trans "Start your learning journey today!" %}
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<script>
+// Animate progress bars on load
+document.addEventListener('DOMContentLoaded', function() {
+  const progressBars = document.querySelectorAll('[style*="conic-gradient"]');
+  progressBars.forEach(bar => {
+    bar.style.transition = 'all 1s ease-out';
+  });
+});
+</script>
+
+{% endblock %}

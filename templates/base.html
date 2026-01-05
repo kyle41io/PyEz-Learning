@@ -76,26 +76,94 @@
       <!-- Authenticated User Navbar -->
       <div class="hidden md:flex space-x-6 items-center">
         <a href="{% url 'dashboard' %}" data-page="dashboard"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Dashboard" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-house"></i><span class="hidden lg:inline">{% trans "Dashboard" %}</span>
+        </a>
         <a href="{% url 'curriculum' %}" data-page="curriculum"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Curriculum" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-book"></i><span class="hidden lg:inline">{% trans "Curriculum" %}</span>
+        </a>
         {% if user.is_teacher %}
         <a href="{% url 'class_management' %}" data-page="class-management"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Class Management" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-users"></i><span class="hidden lg:inline">{% trans "Class Management" %}</span>
+        </a>
         <a href="{% url 'teaching_content' %}" data-page="teaching-content"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Teaching Content" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-chalkboard-teacher"></i><span class="hidden lg:inline">{% trans "Teaching Content" %}</span>
+        </a>
         {% else %}
         {% if user.student_class %}
         <a href="{% url 'my_class' %}" data-page="my-class"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "My Class" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-user-group"></i><span class="hidden lg:inline">{% trans "My Class" %}</span>
+        </a>
         {% endif %}
-        <a href="#" data-page="progress"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Progress" %}</a>
+        <a href="{% url 'progress' %}" data-page="progress"
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-chart-line"></i><span class="hidden lg:inline">{% trans "Progress" %}</span>
+        </a>
         {% endif %}
         {% if user.role == 'admin' %}
         <a href="{% url 'teacher_management' %}" data-page="teacher-management"
-          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg">{% trans "Teacher management" %}</a>
+          class="nav-link text-gray-600 dark:text-gray-300 font-bold hover:text-primary dark:hover:text-primary transition px-3 py-2 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-user-tie"></i><span class="hidden lg:inline">{% trans "Teacher management" %}</span>
+        </a>
         {% endif %}
+      </div>
+
+      <!-- Mobile Navigation Dropdown (visible only on mobile) -->
+      <div class="md:hidden flex items-center">
+        <div class="relative w-full">
+          <button id="mobileNavBtn" onclick="toggleMobileNav()"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+            <i class="fa-solid fa-angle-down text-primary text-xl"></i>
+          </button>
+
+          <div id="mobileNavMenu"
+            class="hidden absolute left-1/2 -translate-x-1/2 mt-3 w-[calc(100vw-2rem)] bg-surface border border-gray-100 dark:border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
+              <p class="text-sm font-bold text-gray-700 dark:text-gray-300">{% trans "Navigation" %}</p>
+            </div>
+            <div class="py-2">
+              <a href="{% url 'dashboard' %}" data-page="dashboard"
+                class="mobile-nav-link block px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition rounded-lg mx-2">
+                <i class="fa-solid fa-house mr-2"></i>{% trans "Dashboard" %}
+              </a>
+              <a href="{% url 'curriculum' %}" data-page="curriculum"
+                class="mobile-nav-link block px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition rounded-lg mx-2">
+                <i class="fa-solid fa-book mr-2"></i>{% trans "Curriculum" %}
+              </a>
+              {% if user.is_teacher %}
+              <a href="{% url 'class_management' %}" data-page="class-management"
+                class="mobile-nav-link block px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition rounded-lg mx-2">
+                <i class="fa-solid fa-users mr-2"></i>{% trans "Class Management" %}
+              </a>
+              <a href="{% url 'teaching_content' %}" data-page="teaching-content"
+                class="mobile-nav-link block px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition rounded-lg mx-2">
+                <i class="fa-solid fa-chalkboard-teacher mr-2"></i>{% trans "Teaching Content" %}
+              </a>
+              {% else %}
+              {% if user.student_class %}
+              <a href="{% url 'my_class' %}" data-page="my-class"
+                class="mobile-nav-link block px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition rounded-lg mx-2">
+                <i class="fa-solid fa-user-group mr-2"></i>{% trans "My Class" %}
+              </a>
+              {% endif %}
+              <a href="{% url 'progress' %}" data-page="progress"
+                class="mobile-nav-link block px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition rounded-lg mx-2">
+                <i class="fa-solid fa-chart-line mr-2"></i>{% trans "Progress" %}
+              </a>
+              {% endif %}
+              {% if user.role == 'admin' %}
+              <a href="{% url 'teacher_management' %}" data-page="teacher-management"
+                class="mobile-nav-link block px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition rounded-lg mx-2">
+                <i class="fa-solid fa-user-tie mr-2"></i>{% trans "Teacher management" %}
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="flex items-center space-x-3">
@@ -244,7 +312,37 @@
 
     function toggleMenu() {
       document.getElementById('userMenu').classList.toggle('hidden');
+      // Close mobile nav when opening user menu
+      const mobileNav = document.getElementById('mobileNavMenu');
+      if (mobileNav && !mobileNav.classList.contains('hidden')) {
+        mobileNav.classList.add('hidden');
+      }
     }
+
+    function toggleMobileNav() {
+      document.getElementById('mobileNavMenu').classList.toggle('hidden');
+      // Close user menu when opening mobile nav
+      const userMenu = document.getElementById('userMenu');
+      if (userMenu && !userMenu.classList.contains('hidden')) {
+        userMenu.classList.add('hidden');
+      }
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      const userMenu = document.getElementById('userMenu');
+      const burgerBtn = document.getElementById('burgerBtn');
+      const mobileNavMenu = document.getElementById('mobileNavMenu');
+      const mobileNavBtn = document.getElementById('mobileNavBtn');
+      
+      if (userMenu && burgerBtn && !burgerBtn.contains(event.target) && !userMenu.contains(event.target)) {
+        userMenu.classList.add('hidden');
+      }
+      
+      if (mobileNavMenu && mobileNavBtn && !mobileNavBtn.contains(event.target) && !mobileNavMenu.contains(event.target)) {
+        mobileNavMenu.classList.add('hidden');
+      }
+    });
 
     function switchLanguage(lang) {
       // Get current path and replace language code

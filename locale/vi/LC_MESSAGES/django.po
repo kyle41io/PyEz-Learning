@@ -428,3 +428,305 @@ msgstr "Chưa tạo giáo viên nào."
 
 msgid "Teacher"
 msgstr "Giáo viên"
+# Curriculum and Lessons
+msgid "Python Programming Curriculum"
+msgstr "Chương trình học Python"
+
+msgid "Total Lessons:"
+msgstr "Tổng bài học:"
+
+msgid "Locked"
+msgstr "Đã khóa"
+
+msgid "Completed"
+msgstr "Hoàn thành"
+
+msgid "stars"
+msgstr "sao"
+
+msgid "Bonus stars"
+msgstr "Sao thưởng"
+
+msgid "Video Lecture"
+msgstr "Video bài giảng"
+
+msgid "Quiz Test"
+msgstr "Bài kiểm tra"
+
+msgid "questions"
+msgstr "câu hỏi"
+
+msgid "Coding Challenge"
+msgstr "Thử thách lập trình"
+
+msgid "problems"
+msgstr "bài toán"
+
+msgid "Interactive Game"
+msgstr "Trò chơi tương tác"
+
+msgid "No lessons available yet"
+msgstr "Chưa có bài học"
+
+msgid "Lessons will be added soon!"
+msgstr "Sẽ thêm bài học sớm!"
+
+# Progress Page
+msgid "Track your learning journey and achievements"
+msgstr "Theo dõi học tập & thành tích"
+
+msgid "Overall Progress"
+msgstr "Tiến độ chung"
+
+msgid "Completed Lessons"
+msgstr "Bài đã hoàn thành"
+
+msgid "Exams Taken"
+msgstr "Bài thi đã làm"
+
+msgid "Complete"
+msgstr "Hoàn thành"
+
+msgid "Rank"
+msgstr "Hạng"
+
+msgid "Curriculum Progress"
+msgstr "Tiến độ học tập"
+
+msgid "Lesson"
+msgstr "Bài"
+
+msgid "In Progress"
+msgstr "Đang học"
+
+msgid "Quiz"
+msgstr "Kiểm tra"
+
+msgid "Coding"
+msgstr "Lập trình"
+
+msgid "Completed on"
+msgstr "Hoàn thành"
+
+msgid "Exam Results"
+msgstr "Kết quả thi"
+
+msgid "Exam"
+msgstr "Bài thi"
+
+msgid "Score"
+msgstr "Điểm"
+
+msgid "Date"
+msgstr "Ngày"
+
+msgid "Multiple Choice"
+msgstr "Trắc nghiệm"
+
+msgid "Coding Test"
+msgstr "Thi code"
+
+msgid "of"
+msgstr "trong"
+
+msgid "No exams taken yet"
+msgstr "Chưa thi bài nào"
+
+msgid "Complete exams to see your results here"
+msgstr "Làm bài thi để xem kết quả"
+
+msgid "Go to Dashboard"
+msgstr "Về trang chủ"
+
+msgid "Amazing! You've completed all lessons! Keep practicing with exams."
+msgstr "Tuyệt vời! Bạn đã hoàn thành tất cả bài học!"
+
+msgid "Great progress! You're almost there!"
+msgstr "Tiến bộ tốt! Sắp xong rồi!"
+
+msgid "You're halfway there! Keep going!"
+msgstr "Đã qua nửa đường! Cố lên!"
+
+msgid "Good start! Keep up the momentum!"
+msgstr "Khởi đầu tốt! Tiếp tục nào!"
+
+msgid "Start your learning journey today!"
+msgstr "Bắt đầu học ngay hôm nay!"
+
+msgid "Navigation"
+msgstr "Điều hướng"
+
+msgid "My Class"
+msgstr "Lớp của tôi"
+
+# Exam Related
+msgid "Already Submitted"
+msgstr "Đã nộp bài"
+
+msgid "You have already submitted this exam."
+msgstr "Bạn đã nộp bài thi này"
+
+msgid "Your Score"
+msgstr "Điểm của bạn"
+
+msgid "Stars Earned"
+msgstr "Sao nhận được"
+
+msgid "Submitted"
+msgstr "Đã nộp"
+
+msgid "Back to Dashboard"
+msgstr "Về trang chủ"
+
+msgid "Access Denied"
+msgstr "Từ chối truy cập"
+
+msgid "You are not allowed to access this exam. It may be restricted to specific classes."
+msgstr "Bạn không được phép thi bài này"
+
+msgid "This exam has been ended by the teacher."
+msgstr "Giáo viên đã kết thúc bài thi"
+
+msgid "This exam has ended."
+msgstr "Bài thi đã kết thúc"
+
+msgid "This exam is not currently available."
+msgstr "Bài thi chưa mở"
+
+msgid "Start"
+msgstr "Bắt đầu"
+
+msgid "End"
+msgstr "Kết thúc"
+
+msgid "Back to Exams List"
+msgstr "Về danh sách thi"
+
+msgid "Results"
+msgstr "Kết quả"
+
+msgid "Type"
+msgstr "Loại"
+
+msgid "Submissions"
+msgstr "Bài nộp"
+
+msgid "Avg Score"
+msgstr "Điểm TB"
+
+msgid "Max Stars"
+msgstr "Sao tối đa"
+
+msgid "Student Submissions"
+msgstr "Bài nộp học sinh"
+
+msgid "Submitted At"
+msgstr "Thời gian nộp"
+
+msgid "No submissions yet"
+msgstr "Chưa có bài nộp"
+
+msgid "Time Remaining"
+msgstr "Thời gian còn"
+
+msgid "The exam will auto-submit when time expires"
+msgstr "Bài thi tự động nộp khi hết giờ"
+
+msgid "Duration"
+msgstr "Thời lượng"
+
+msgid "minutes"
+msgstr "phút"
+
+msgid "Max"
+msgstr "Tối đa"
+
+msgid "Time is up! Your exam will be submitted automatically."
+msgstr "Hết giờ! Bài thi sẽ tự động nộp"
+
+msgid "Running..."
+msgstr "Đang chạy..."
+
+msgid "Executing code..."
+msgstr "Đang thực thi..."
+
+msgid "Run & Test"
+msgstr "Chạy & Kiểm tra"
+
+msgid "Error running code"
+msgstr "Lỗi chạy code"
+
+msgid "All tests passed!"
+msgstr "Đạt tất cả test!"
+
+msgid "Solved"
+msgstr "Đã giải"
+
+msgid "Submitting..."
+msgstr "Đang nộp..."
+
+msgid "Error"
+msgstr "Lỗi"
+
+msgid "Submit"
+msgstr "Nộp bài"
+
+msgid "Error submitting exam"
+msgstr "Lỗi nộp bài thi"
+
+msgid "Exam Submitted!"
+msgstr "Đã nộp bài!"
+
+msgid "Back to Teaching Content"
+msgstr "Về nội dung giảng dạy"
+
+msgid "Create New Exam"
+msgstr "Tạo bài thi mới"
+
+msgid "Exam Type"
+msgstr "Loại bài thi"
+
+msgid "Multiple Choice Test"
+msgstr "Trắc nghiệm"
+
+msgid "Exam Title"
+msgstr "Tên bài thi"
+
+msgid "Max Stars Points"
+msgstr "Sao tối đa"
+
+msgid "Duration (minutes)"
+msgstr "Thời lượng (phút)"
+
+msgid "Start Time (optional)"
+msgstr "Thời gian bắt đầu"
+
+msgid "Leave empty for exam to be available immediately"
+msgstr "Để trống để mở ngay"
+
+msgid "End Time (optional)"
+msgstr "Thời gian kết thúc"
+
+msgid "Leave empty for exam to always be available (you can end it manually later)"
+msgstr "Để trống để mở luôn"
+
+msgid "Allowed Classes (hold Ctrl/Cmd to select multiple)"
+msgstr "Lớp được thi"
+
+msgid "Leave empty to allow all students"
+msgstr "Để trống cho tất cả"
+
+msgid "Password (optional)"
+msgstr "Mật khẩu"
+
+msgid "Questions/Problems (JSON format)"
+msgstr "Câu hỏi (JSON)"
+
+msgid "Paste questions in JSON format here..."
+msgstr "Dán câu hỏi JSON vào đây..."
+
+msgid "View JSON Format Examples"
+msgstr "Xem ví dụ JSON"
+
+msgid "Multiple Choice Format"
+msgstr "Định dạng trắc nghiệm"

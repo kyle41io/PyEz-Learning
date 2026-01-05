@@ -125,60 +125,63 @@
           <h2 class="text-2xl font-bold mb-6">{% trans "Teachers" %}</h2>
 
           {% if teachers %}
-          <div class="space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for teacher in teachers %}
-            <div
-              class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
-              <div class="flex items-center space-x-3">
-                {% if teacher.profile_picture %}
-                <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.first_name }}"
-                  class="w-12 h-12 rounded-full object-cover border-2 border-primary shadow-lg">
-                {% else %}
-                <div
-                  class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-lg font-bold shadow-lg">
-                  {{ teacher.first_name|first|upper }}
-                </div>
-                {% endif %}
-                <div>
-                  <div class="flex items-center gap-1">
-                    <p class="font-bold">{{ teacher.first_name }} {{ teacher.last_name }}</p>
-                    {% if teacher.gender %}
-                    <span>{% if teacher.gender == 'male' %}<i class="fa-solid fa-mars text-blue-500"></i>{% elif teacher.gender == 'female' %}<i class="fa-solid fa-venus text-pink-500"></i>{% else %}<i class="fa-solid fa-transgender text-primary"></i>{% endif %}</span>
-                    {% endif %}
+            <div class="bg-surface border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-6 hover:shadow-xl transition transform hover:-translate-y-1">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                  {% if teacher.profile_picture %}
+                  <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.first_name }}"
+                    class="w-14 h-14 rounded-full object-cover border-2 border-primary shadow-lg">
+                  {% else %}
+                  <div
+                    class="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                    {{ teacher.first_name|first|upper }}
                   </div>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">@{{ teacher.username }}</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500">{{ teacher.email }}</p>
+                  {% endif %}
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1">
+                      <p class="font-bold text-gray-900 dark:text-white truncate">{{ teacher.first_name }} {{ teacher.last_name }}</p>
+                      {% if teacher.gender %}
+                      <span class="flex-shrink-0">{% if teacher.gender == 'male' %}<i class="fa-solid fa-mars text-blue-500"></i>{% elif teacher.gender == 'female' %}<i class="fa-solid fa-venus text-pink-500"></i>{% else %}<i class="fa-solid fa-transgender text-primary"></i>{% endif %}</span>
+                      {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate">@{{ teacher.username }}</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 truncate">{{ teacher.email }}</p>
+                  </div>
                 </div>
-
-
               </div>
-              <div>
-                <span class="inline-block px-3 py-1 bg-primary text-white text-xs font-bold rounded-full">
-                  <i class="fa-duotone fa-solid fa-person-chalkboard"></i> {% trans "Teacher" %}
+              
+              <div class="flex items-center justify-between mb-3">
+                <span class="inline-flex items-center px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
+                  <i class="fa-solid fa-chalkboard-teacher mr-1"></i> {% trans "Teacher" %}
                 </span>
-              </div>
-              <div class="flex items-center space-x-2">
                 <span
-                  class="px-3 py-1 text-xs font-bold rounded-full {% if teacher.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                  class="px-3 py-1 text-xs font-bold rounded-full {% if teacher.is_active %}bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300{% else %}bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300{% endif %}">
                   {% if teacher.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
                 </span>
-                <button
-                  onclick="event.stopPropagation(); toggleTeacherStatus({{ teacher.id }}, {{ teacher.is_active|yesno:'true,false' }})"
-                  class="px-3 py-1 rounded {% if teacher.is_active %}bg-red-100 text-red-500 hover:text-red-700 hover:bg-red-200{% else %}bg-blue-100 text-blue-500 hover:text-blue-700 hover:bg-blue-200{% endif %} font-bold text-sm transition">
-                  {% if teacher.is_active %}
-                  {% trans "Deactivate" %}
-                  {% else %}
-                  {% trans "Activate" %}
-                  {% endif %}
-                </button>
               </div>
+
+              <button
+                onclick="event.stopPropagation(); toggleTeacherStatus({{ teacher.id }}, {{ teacher.is_active|yesno:'true,false' }})"
+                class="w-full py-2 rounded-lg {% if teacher.is_active %}bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50{% else %}bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50{% endif %} font-bold text-sm transition">
+                {% if teacher.is_active %}
+                <i class="fa-solid fa-user-slash mr-1"></i>{% trans "Deactivate" %}
+                {% else %}
+                <i class="fa-solid fa-user-check mr-1"></i>{% trans "Activate" %}
+                {% endif %}
+              </button>
             </div>
             {% endfor %}
           </div>
           {% else %}
-          <p class="text-gray-500 dark:text-gray-400 text-center py-8">
-            {% trans "No teachers created yet." %}
-          </p>
+          <div class="text-center py-12">
+            <div class="text-gray-500">
+              <i class="fa-solid fa-user-plus text-4xl mb-3"></i>
+              <p class="text-lg font-bold mb-2">{% trans "No teachers created yet." %}</p>
+              <p class="text-sm">{% trans "Create your first teacher account using the form." %}</p>
+            </div>
+          </div>
           {% endif %}
         </div>
       </div>

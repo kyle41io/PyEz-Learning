@@ -591,6 +591,7 @@ def class_detail(request, class_name):
 def submit_quiz(request, lesson_id):
     from django.http import JsonResponse
     from .models import Lesson, Progress
+    from django.utils import timezone
     import json
     
     if request.method != 'POST':
@@ -645,6 +646,10 @@ def submit_quiz(request, lesson_id):
         progress.quiz_score = correct_count
         progress.quiz_passed = all_correct
         
+        # Track timestamp when quiz is passed
+        if all_correct and not was_quiz_passed_before:
+            progress.quiz_passed_at = timezone.now()
+        
         # Check if lesson should be completed
         has_quiz = lesson.quiz and len(lesson.quiz) > 0
         has_code_test = lesson.coding and len(lesson.coding) > 0
@@ -669,12 +674,14 @@ def submit_quiz(request, lesson_id):
             if progress.quiz_passed:
                 if not progress.is_completed:
                     progress.is_completed = True
+                    progress.completed_at = timezone.now()
                     lesson_completed_now = True
         elif not has_quiz and has_code_test:
             # Only coding test (shouldn't happen but handle it)
             if progress.code_test_passed:
                 if not progress.is_completed:
                     progress.is_completed = True
+                    progress.completed_at = timezone.now()
                     lesson_completed_now = True
         
         progress.save()
@@ -693,6 +700,11 @@ def submit_quiz(request, lesson_id):
         # Update student's overall progress after any changes
         request.user.update_progress()
         
+        # Convert timestamps to local timezone before formatting
+        from django.utils.timezone import localtime
+        quiz_passed_at_str = localtime(progress.quiz_passed_at).strftime('%B %d, %Y at %H:%M') if progress.quiz_passed_at else None
+        completed_at_str = localtime(progress.completed_at).strftime('%B %d, %Y at %H:%M') if progress.completed_at else None
+        
         return JsonResponse({
             'success': True,
             'score': correct_count,
@@ -700,7 +712,9 @@ def submit_quiz(request, lesson_id):
             'passed': all_correct,
             'results': results,
             'points_earned': points_earned,
-            'lesson_completed': lesson_completed_now
+            'lesson_completed': lesson_completed_now,
+            'quiz_passed_at': quiz_passed_at_str,
+            'completed_at': completed_at_str
         })
         
     except Lesson.DoesNotExist:
@@ -893,6 +907,7 @@ def run_code(request, lesson_id):
 def submit_coding(request, lesson_id):
     from django.http import JsonResponse
     from .models import Lesson, Progress
+    from django.utils import timezone
     import json
     
     if request.method != 'POST':
@@ -924,6 +939,10 @@ def submit_coding(request, lesson_id):
         
         progress.code_test_passed = all_passed
         
+        # Track timestamp when coding test is passed
+        if all_passed and not was_code_passed_before:
+            progress.code_test_passed_at = timezone.now()
+        
         # Check if lesson should be completed
         has_quiz = lesson.quiz and len(lesson.quiz) > 0
         lesson_completed_now = False
@@ -946,6 +965,7 @@ def submit_coding(request, lesson_id):
             if progress.code_test_passed:
                 if not progress.is_completed:
                     progress.is_completed = True
+                    progress.completed_at = timezone.now()
                     lesson_completed_now = True
         
         progress.save()
@@ -964,13 +984,20 @@ def submit_coding(request, lesson_id):
         # Update student's overall progress
         request.user.update_progress()
         
+        # Convert timestamps to local timezone before formatting
+        from django.utils.timezone import localtime
+        code_test_passed_at_str = localtime(progress.code_test_passed_at).strftime('%B %d, %Y at %H:%M') if progress.code_test_passed_at else None
+        completed_at_str = localtime(progress.completed_at).strftime('%B %d, %Y at %H:%M') if progress.completed_at else None
+        
         return JsonResponse({
             'success': True,
             'passed': all_passed,
             'solved': len(passed_problems),
             'total': total_problems,
             'points_earned': points_earned,
-            'lesson_completed': lesson_completed_now
+            'lesson_completed': lesson_completed_now,
+            'code_test_passed_at': code_test_passed_at_str,
+            'completed_at': completed_at_str
         })
         
     except Exception as e:
@@ -1108,3 +1135,133 @@ def end_exam_view(request, exam_id):
         return JsonResponse({'success': True, 'message': 'Exam ended successfully'})
     
     return redirect('teaching_content')
+
+
+@login_required(login_url='signin')
+def student_progress_view(request):
+    """Display student's learning progress and exam results"""
+    from .models import Lesson, Progress, Chapter
+    from exams.models import ExamSubmission
+    from users.models import User
+    from django.db.models import Count, Q
+    
+    # Only students can access this page
+    if request.user.role != 'student':
+        return redirect('dashboard')
+    
+    user = request.user
+    
+    # Get curriculum progress data
+    total_lessons = Lesson.objects.count()
+    completed_lessons_count = Progress.objects.filter(student=user, is_completed=True).count()
+    progress_percent = user.progress_percent if user.progress_percent is not None else 0
+    
+    # Calculate student's rank based on star points
+    higher_ranked_students = User.objects.filter(
+        role='student',
+        star_points__gt=user.star_points
+    ).count()
+    student_rank = higher_ranked_students + 1
+    total_students = User.objects.filter(role='student').count()
+    
+    # Get all lessons with progress details
+    chapters = Chapter.objects.prefetch_related('lessons').order_by('order')
+    lessons_progress = []
+    
+    # Check if chapters exist
+    if chapters.exists():
+        # Group lessons by chapter
+        for chapter in chapters:
+            chapter_lessons = []
+            for lesson in chapter.lessons.all().order_by('order'):
+                progress = Progress.objects.filter(student=user, lesson=lesson).first()
+                
+                # Only show lessons where student has done something (quiz or coding)
+                if progress and (progress.quiz_passed or progress.code_test_passed):
+                    lesson_data = {
+                        'lesson': lesson,
+                        'progress': progress,
+                        'is_completed': progress.is_completed,
+                        'quiz_passed': progress.quiz_passed,
+                        'quiz_passed_at': progress.quiz_passed_at,
+                        'code_test_passed': progress.code_test_passed,
+                        'code_test_passed_at': progress.code_test_passed_at,
+                        'completed_at': progress.completed_at,
+                    }
+                    chapter_lessons.append(lesson_data)
+            
+            # Only add chapter if it has lessons with progress
+            if chapter_lessons:
+                lessons_progress.append({
+                    'chapter': chapter,
+                    'lessons': chapter_lessons
+                })
+    else:
+        # If no chapters exist, show all lessons without chapter grouping
+        all_lessons = Lesson.objects.all().order_by('order')
+        if all_lessons.exists():
+            chapter_lessons = []
+            for lesson in all_lessons:
+                progress = Progress.objects.filter(student=user, lesson=lesson).first()
+                
+                # Only show lessons where student has done something (quiz or coding)
+                if progress and (progress.quiz_passed or progress.code_test_passed):
+                    lesson_data = {
+                        'lesson': lesson,
+                        'progress': progress,
+                        'is_completed': progress.is_completed,
+                        'quiz_passed': progress.quiz_passed,
+                        'quiz_passed_at': progress.quiz_passed_at,
+                        'code_test_passed': progress.code_test_passed,
+                        'code_test_passed_at': progress.code_test_passed_at,
+                        'completed_at': progress.completed_at,
+                    }
+                    chapter_lessons.append(lesson_data)
+            
+            # Create a default "All Lessons" chapter if there are lessons with progress
+            if chapter_lessons:
+                lessons_progress.append({
+                    'chapter': {'title': 'All Lessons', 'order': 1},
+                    'lessons': chapter_lessons
+                })
+    
+    # Get exam results
+    exam_submissions = ExamSubmission.objects.filter(student=user).select_related('exam').order_by('-submitted_at')
+    
+    # Calculate exam statistics
+    exam_results = []
+    for submission in exam_submissions:
+        # Calculate percentage score
+        percentage = (submission.score / submission.total_questions * 100) if submission.total_questions > 0 else 0
+        
+        # Get rank for this exam (count how many students scored higher)
+        higher_scores = ExamSubmission.objects.filter(
+            exam=submission.exam,
+            score__gt=submission.score
+        ).count()
+        rank = higher_scores + 1
+        
+        # Get total participants for this exam
+        total_participants = ExamSubmission.objects.filter(exam=submission.exam).count()
+        
+        exam_results.append({
+            'exam': submission.exam,
+            'submission': submission,
+            'percentage': round(percentage, 1),
+            'rank': rank,
+            'total_participants': total_participants,
+        })
+    
+    context = {
+        'total_lessons': total_lessons,
+        'completed_lessons_count': completed_lessons_count,
+        'progress_percent': progress_percent,
+        'lessons_progress': lessons_progress,
+        'exam_results': exam_results,
+        'total_exams_taken': exam_submissions.count(),
+        'user_stars': user.star_points,
+        'student_rank': student_rank,
+        'total_students': total_students,
+    }
+    
+    return render(request, 'classroom/progress.html', context)

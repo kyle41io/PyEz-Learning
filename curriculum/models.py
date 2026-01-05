@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from curriculum.storage import PdfCloudinaryStorage
 
 class Chapter(models.Model):
     title = models.CharField(max_length=200)
@@ -20,7 +21,7 @@ class Lesson(models.Model):
         blank=True, 
         null=True, 
         max_length=500,
-        storage=lambda: __import__('curriculum.storage', fromlist=['PdfCloudinaryStorage']).PdfCloudinaryStorage()
+        storage=PdfCloudinaryStorage
     )
     game = models.CharField(max_length=100, blank=True, help_text="Name of game file in static")
 
@@ -53,6 +54,9 @@ class Progress(models.Model):
     quiz_passed = models.BooleanField(default=False)
     quiz_score = models.IntegerField(default=0, help_text="Number of correct answers")
     code_test_passed = models.BooleanField(default=False)
+    quiz_passed_at = models.DateTimeField(null=True, blank=True, help_text="When the quiz was passed")
+    code_test_passed_at = models.DateTimeField(null=True, blank=True, help_text="When the coding test was passed")
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="When the lesson was fully completed")
 
     class Meta:
         verbose_name_plural = "Progress"
