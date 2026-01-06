@@ -1,0 +1,35 @@
+// PyEz Learning Context Diagram
+digraph {
+	rankdir=LR size="12,10"
+	node [fillcolor=lightblue shape=box style="rounded,filled"]
+	edge [fontsize=10]
+	System [label="PyEz Learning
+System" fillcolor=lightgreen fontsize=14 height=2.5 shape=circle width=2.5]
+	Student [label="Student
+(Học sinh)" fillcolor=lightcoral]
+	Teacher [label="Teacher
+(Giáo viên)" fillcolor=lightcoral]
+	Admin [label="Admin
+(Quản trị viên)" fillcolor=lightcoral]
+	Google [label="Google OAuth
+Service" fillcolor=lightyellow]
+	Cloudinary [label="Cloudinary
+Storage" fillcolor=lightyellow]
+	Student -> System [label="Học bài, làm bài tập
+Làm quiz, coding test
+Xem tiến độ"]
+	System -> Student [label="Nội dung bài học
+Điểm số, xếp hạng"]
+	Teacher -> System [label="Tạo đề thi/bài tập
+Quản lý lớp học
+Xem báo cáo"]
+	System -> Teacher [label="Kết quả học sinh
+Thống kê lớp học"]
+	Admin -> System [label="Tạo tài khoản GV
+Quản lý hệ thống"]
+	System -> Admin [label="Báo cáo hệ thống"]
+	System -> Google [label="Xác thực OAuth"]
+	Google -> System [label="Token, thông tin user"]
+	System -> Cloudinary [label="Upload PDF, hình ảnh"]
+	Cloudinary -> System [label="URL tài nguyên"]
+}

@@ -17,7 +17,7 @@
   </div>
 
   <!-- Overall Progress Card -->
-  <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl shadow-xl p-8 mb-8 border border-primary/20">
+  <div class="bg-gradient-to-br from-gray-200 to-primary rounded-3xl shadow-xl p-8 mb-8 border border-primary/20">
     <div class="flex flex-col md:flex-row items-center justify-between gap-8">
       <div class="flex-1">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">{% trans "Overall Progress" %}</h2>
@@ -77,13 +77,6 @@
         <div class="space-y-6">
           {% for chapter_data in lessons_progress %}
           <div class="border-l-4 border-primary/30 pl-4">
-            <h3 class="text-lg font-bold text-gray-700 dark:text-gray-200 mb-3">
-              {% if chapter_data.chapter.title %}
-                {{ chapter_data.chapter.title }}
-              {% else %}
-                {% trans "All Lessons" %}
-              {% endif %}
-            </h3>
             <div class="space-y-3">
               {% for lesson_data in chapter_data.lessons %}
               <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 hover:shadow-md transition">

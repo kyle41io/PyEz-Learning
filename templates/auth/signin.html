@@ -55,7 +55,17 @@
       <div class="text-center mb-8">
         <div
           class="inline-block w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white text-3xl shadow-lg mb-3">
-          🐍</div>
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+            <!-- We use 'stroke-current' and 'text-brand' so the color changes with your theme! -->
+            <path
+              d="M50 35C50 26.7157 56.7157 20 65 20C73.2843 20 80 26.7157 80 35V65C80 73.2843 73.2843 80 65 80H35C26.7157 80 20 73.2843 20 65C20 56.7157 26.7157 50 35 50H65"
+              class="stroke-current text-brand" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="65" cy="35" r="4" class="fill-white" />
+            <!-- Tongue (hidden in logo, shown on hover if you want, or kept static) -->
+            <path d="M86 35H92L96 32M92 35L96 38" class="stroke-red-500 dark:stroke-red-300" stroke-width="4"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
         <h1 class="text-3xl font-extrabold text-primary">PyEz</h1>
         <p class="text-gray-500 text-sm mt-1">{% trans "Welcome Back" %}</p>
       </div>

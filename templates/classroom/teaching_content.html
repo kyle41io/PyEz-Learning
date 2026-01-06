@@ -5,7 +5,7 @@
 <div class="mb-8">
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-2xl font-extrabold text-gray-800 dark:text-white">{% trans "Teaching Content" %}</h2>
-    <a href="{% url 'create_exam' %}" class="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition">
+    <a href="{% url 'create_exam' %}" class="px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:opacity-90 transition">
       <i class="fa-solid fa-plus mr-2"></i>{% trans "Create New Exam" %}
     </a>
   </div>
@@ -91,7 +91,7 @@
             </button>
             {% endif %}
             <a href="{% url 'teacher_exam_results' exam.id %}" 
-              class="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:opacity-90 transition">
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg font-bold hover:opacity-90 transition">
               <i class="fa-solid fa-chart-bar mr-1"></i>{% trans "View Results" %}
             </a>
           </div>
