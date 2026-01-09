@@ -85,47 +85,163 @@
           placeholder="{% trans 'Leave empty for no password' %}">
       </div>
 
-      <!-- Questions Section -->
+      <!-- Questions Section with AI Integration -->
       <div class="mb-6">
-        <label class="block text-sm font-bold mb-2">{% trans "Questions/Problems (JSON format)" %}</label>
-        <textarea name="questions" rows="10" required 
-          class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 font-mono text-sm"
-          placeholder='{% trans "Paste questions in JSON format here..." %}'></textarea>
-        <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          <details>
-            <summary class="cursor-pointer font-bold">{% trans "View JSON Format Examples" %}</summary>
-            <div class="mt-2 space-y-4">
-              <div>
-                <strong>{% trans "Multiple Choice Format" %}:</strong>
-                <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-1 overflow-x-auto"><code>[
-  {
-    "id": 1,
-    "question": "What is Python?",
-    "options": ["A snake", "A programming language", "A food", "A game"],
-    "correct_answer": 1
-  }
-]</code></pre>
+        <label class="block text-sm font-bold mb-2">
+          {% trans "Questions/Problems" %}
+          <span class="text-purple-500 ml-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            {% trans "AI Assisted" %}
+          </span>
+        </label>
+
+        <!-- AI Input Method Tabs -->
+        <div class="mb-3">
+          <div class="flex gap-2 border-b border-gray-300 dark:border-gray-600">
+            <button type="button" id="ai-tab-text" class="ai-tab-button active px-3 py-2 text-sm font-bold border-b-2 border-primary">
+              <i class="fa-solid fa-keyboard mr-1"></i>{% trans "Natural Language" %}
+            </button>
+            <button type="button" id="ai-tab-json" class="ai-tab-button px-3 py-2 text-sm font-bold border-b-2 border-transparent hover:border-gray-400">
+              <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>{% trans "Fix JSON" %}
+            </button>
+            <button type="button" id="ai-tab-file" class="ai-tab-button px-3 py-2 text-sm font-bold border-b-2 border-transparent hover:border-gray-400">
+              <i class="fa-solid fa-file-upload mr-1"></i>{% trans "Upload File" %}
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden textarea for form submission -->
+        <textarea id="questions-json" name="questions" class="hidden" required></textarea>
+
+        <!-- Natural Language Input (Default) -->
+        <div id="ai-panel-text" class="ai-input-panel">
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3">
+            <p class="text-sm font-bold text-blue-800 dark:text-blue-200 mb-2">
+              <i class="fa-solid fa-info-circle mr-1"></i>{% trans "How to use:" %}
+            </p>
+            <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1 ml-5">
+              <li>• {% trans "Write questions in plain Vietnamese or English" %}</li>
+              <li>• {% trans "Number each question clearly (Câu 1, Câu 2... or Q1, Q2...)" %}</li>
+              <li>• {% trans "For multiple choice: list options A, B, C, D and indicate correct answer" %}</li>
+              <li>• {% trans "For coding: describe the problem, input/output, and test cases" %}</li>
+            </ul>
+          </div>
+          <textarea id="ai-text-input" rows="12" 
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm"
+            placeholder="{% trans 'Ví dụ cho Multiple Choice:\n\nCâu 1: Python là gì?\nA. Một con rắn\nB. Ngôn ngữ lập trình\nC. Một loại thức ăn  \nD. Một trò chơi\nĐáp án: B\n\nCâu 2: Hàm print() dùng để làm gì?\nA. In ra màn hình\nB. Xóa dữ liệu\nC. Lưu file\nD. Tính toán\nĐáp án: A\n\n---\n\nVí dụ cho Coding:\n\nBài 1: Viết hàm tính tổng 2 số\nMô tả: Cho 2 số nguyên a và b, trả về tổng của chúng\nInput: 5, 3\nOutput: 8\n\nBài 2: Tìm số lớn nhất trong list\nMô tả: Cho một danh sách số, tìm và trả về số lớn nhất\nInput: [1, 5, 3, 9, 2]\nOutput: 9' %}"></textarea>
+          <button type="button" id="ai-convert-text" 
+            class="mt-2 w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-bold hover:opacity-90 transition">
+            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>{% trans "Generate Questions with AI" %}
+          </button>
+        </div>
+
+        <!-- Fix JSON Input -->
+        <div id="ai-panel-json" class="ai-input-panel hidden">
+          <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-3">
+            <p class="text-sm font-bold text-yellow-800 dark:text-yellow-200 mb-2">
+              <i class="fa-solid fa-info-circle mr-1"></i>{% trans "What AI will fix:" %}
+            </p>
+            <ul class="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 ml-5">
+              <li>• {% trans "Missing fields (correct_answer, test_cases, etc.)" %}</li>
+              <li>• {% trans "Syntax errors (missing commas, brackets, quotes)" %}</li>
+              <li>• {% trans "Incomplete data (add missing options, examples)" %}</li>
+              <li>• {% trans "Format validation and standardization" %}</li>
+            </ul>
+          </div>
+          <textarea id="ai-json-input" rows="12" 
+            class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 font-mono text-sm"
+            placeholder='{% trans "Paste your broken or incomplete JSON here...\n\nExample of broken JSON that AI will fix:\n[\n  {\n    \"id\": 1\n    \"question\": \"What is Python?\",\n    \"options\": [\"Snake\", \"Language\"]\n    // Missing comma, no correct_answer\n  },\n  {\n    \"question\": \"Print function\"\n    // Missing id, options, answer\n  }\n]\n\nAI will:\n- Add missing commas\n- Add missing fields (id, correct_answer, etc.)\n- Complete options arrays\n- Validate structure" %}'></textarea>
+          <button type="button" id="ai-validate-json" 
+            class="mt-2 w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-bold hover:opacity-90 transition">
+            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>{% trans "Fix & Validate JSON with AI" %}
+          </button>
+        </div>
+
+        <!-- File Upload -->
+        <div id="ai-panel-file" class="ai-input-panel hidden">
+          <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-3">
+            <p class="text-sm font-bold text-green-800 dark:text-green-200 mb-2">
+              <i class="fa-solid fa-info-circle mr-1"></i>{% trans "Supported formats:" %}
+            </p>
+            <ul class="text-xs text-green-700 dark:text-green-300 space-y-1 ml-5">
+              <li>• {% trans "PDF documents (.pdf) - max 10MB" %}</li>
+              <li>• {% trans "Word documents (.docx) - max 10MB" %}</li>
+              <li>• {% trans "Text files (.txt, .md) - max 10MB" %}</li>
+              <li>• {% trans "AI will extract questions and convert to proper format" %}</li>
+            </ul>
+          </div>
+          <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center">
+            <i class="fa-solid fa-cloud-arrow-up text-5xl text-gray-400 mb-4"></i>
+            <p class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{% trans "Upload your exam file" %}</p>
+            <p class="text-xs text-gray-500 mb-4">{% trans "PDF, DOCX, TXT, or MD (max 10MB)" %}</p>
+            <input type="file" id="ai-file-input" accept=".txt,.pdf,.docx,.md" class="hidden">
+            <button type="button" id="ai-browse-file" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition">
+              <i class="fa-solid fa-folder-open mr-2"></i>{% trans "Browse Files" %}
+            </button>
+          </div>
+          <div id="ai-file-info" class="hidden mt-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-file-lines text-2xl text-blue-500"></i>
+                <div>
+                  <p id="ai-file-name" class="text-sm font-bold text-gray-800 dark:text-white"></p>
+                  <p id="ai-file-size" class="text-xs text-gray-600 dark:text-gray-400"></p>
+                </div>
               </div>
+              <button type="button" id="ai-remove-file" class="text-red-500 hover:text-red-700 text-xl">
+                <i class="fa-solid fa-times-circle"></i>
+              </button>
+            </div>
+          </div>
+          <button type="button" id="ai-convert-file" disabled
+            class="mt-3 w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition">
+            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>{% trans "Convert File to Questions" %}
+          </button>
+        </div>
+
+        <!-- AI Processing Status -->
+        <div id="ai-status" class="hidden mt-3">
+          <div id="ai-loading" class="hidden bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center gap-3">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span class="text-sm font-bold text-blue-800 dark:text-blue-200">
+                <i class="fa-solid fa-robot mr-2"></i>{% trans "AI is processing your questions..." %}
+              </span>
+            </div>
+          </div>
+          <div id="ai-success" class="hidden bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-circle-check text-2xl text-green-600"></i>
               <div>
-                <strong>{% trans "Coding Format" %}:</strong>
-                <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-1 overflow-x-auto"><code>[
-  {
-    "id": 1,
-    "title": "Sum Two Numbers",
-    "description": "Write a function that returns the sum of two numbers",
-    "starter_code": "def sum_two(a, b):\n    # Your code here\n    pass",
-    "test_cases": [
-      {"input": "1, 2", "expected": "3"},
-      {"input": "5, 7", "expected": "12"}
-    ],
-    "examples": [
-      {"input": "1, 2", "output": "3"}
-    ]
-  }
-]</code></pre>
+                <p class="text-sm font-bold text-green-800 dark:text-green-200">
+                  {% trans "Success!" %} <span id="ai-success-count"></span> {% trans "questions generated" %}
+                </p>
+                <p class="text-xs text-green-700 dark:text-green-300">{% trans "Review below, then submit the form" %}</p>
               </div>
             </div>
-          </details>
+          </div>
+          <div id="ai-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-circle-exclamation text-2xl text-red-600 mt-0.5"></i>
+              <div>
+                <p class="text-sm font-bold text-red-800 dark:text-red-200">{% trans "Error occurred" %}</p>
+                <p id="ai-error-message" class="text-xs text-red-700 dark:text-red-300 mt-1"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Questions Preview -->
+        <div id="ai-preview" class="hidden mt-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-sm font-bold text-gray-800 dark:text-white">
+              <i class="fa-solid fa-eye mr-2"></i>{% trans "Generated Questions Preview" %}
+            </p>
+            <button type="button" id="ai-edit-json" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 font-bold">
+              <i class="fa-solid fa-edit mr-1"></i>{% trans "Edit JSON" %}
+            </button>
+          </div>
+          <pre id="ai-preview-content" class="bg-white dark:bg-gray-900 p-3 rounded-lg text-xs font-mono overflow-x-auto max-h-60 border border-gray-200 dark:border-gray-700"></pre>
         </div>
       </div>
 
@@ -145,6 +261,248 @@
 </div>
 
 <script>
+// ========== AI Integration for Questions Field ==========
+
+// Tab switching for AI input methods
+const aiTabs = {
+  text: document.getElementById('ai-tab-text'),
+  json: document.getElementById('ai-tab-json'),
+  file: document.getElementById('ai-tab-file')
+};
+
+const aiPanels = {
+  text: document.getElementById('ai-panel-text'),
+  json: document.getElementById('ai-panel-json'),
+  file: document.getElementById('ai-panel-file')
+};
+
+function switchAITab(tabName) {
+  Object.keys(aiTabs).forEach(key => {
+    if (key === tabName) {
+      aiTabs[key].classList.add('active', 'border-primary');
+      aiTabs[key].classList.remove('border-transparent');
+      aiPanels[key].classList.remove('hidden');
+    } else {
+      aiTabs[key].classList.remove('active', 'border-primary');
+      aiTabs[key].classList.add('border-transparent');
+      aiPanels[key].classList.add('hidden');
+    }
+  });
+}
+
+aiTabs.text.addEventListener('click', () => switchAITab('text'));
+aiTabs.json.addEventListener('click', () => switchAITab('json'));
+aiTabs.file.addEventListener('click', () => switchAITab('file'));
+
+// Status management
+function showAILoading() {
+  document.getElementById('ai-status').classList.remove('hidden');
+  document.getElementById('ai-loading').classList.remove('hidden');
+  document.getElementById('ai-success').classList.add('hidden');
+  document.getElementById('ai-error').classList.add('hidden');
+  document.getElementById('ai-preview').classList.add('hidden');
+}
+
+function showAISuccess(count, jsonData) {
+  document.getElementById('ai-loading').classList.add('hidden');
+  document.getElementById('ai-success').classList.remove('hidden');
+  document.getElementById('ai-success-count').textContent = count;
+  
+  // Show preview
+  document.getElementById('ai-preview').classList.remove('hidden');
+  document.getElementById('ai-preview-content').textContent = JSON.stringify(jsonData, null, 2);
+}
+
+function showAIError(message) {
+  document.getElementById('ai-loading').classList.add('hidden');
+  document.getElementById('ai-error').classList.remove('hidden');
+  document.getElementById('ai-error-message').textContent = message;
+}
+
+function hideAIStatus() {
+  document.getElementById('ai-status').classList.add('hidden');
+}
+
+// Edit JSON button
+document.getElementById('ai-edit-json').addEventListener('click', function() {
+  const jsonContent = document.getElementById('questions-json').value;
+  const userEdit = prompt('{% trans "Edit JSON (advanced users only):" %}', jsonContent);
+  if (userEdit !== null) {
+    try {
+      JSON.parse(userEdit); // Validate
+      document.getElementById('questions-json').value = userEdit;
+      document.getElementById('ai-preview-content').textContent = JSON.stringify(JSON.parse(userEdit), null, 2);
+    } catch (e) {
+      modalError('{% trans "Invalid JSON format!" %}', '{% trans "Error" %}');
+    }
+  }
+});
+
+// Convert natural language to JSON
+document.getElementById('ai-convert-text').addEventListener('click', async function() {
+  const text = document.getElementById('ai-text-input').value.trim();
+  if (!text) {
+    modalWarning('{% trans "Please enter some text" %}', '{% trans "Warning" %}');
+    return;
+  }
+
+  const examType = document.querySelector('select[name="exam_type"]').value;
+  const language = 'vi'; // Can be made dynamic if needed
+
+  showAILoading();
+
+  try {
+    const response = await fetch('{% url "ai_convert_text" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({ text, exam_type: examType, language })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Put JSON in the hidden textarea
+      document.getElementById('questions-json').value = JSON.stringify(data.questions, null, 2);
+      showAISuccess(data.count, data.questions);
+    } else {
+      showAIError(data.error || '{% trans "Conversion failed" %}');
+    }
+  } catch (error) {
+    console.error('AI Error:', error);
+    showAIError('{% trans "Network error. Please try again." %}');
+  }
+});
+
+// Validate and fix JSON
+document.getElementById('ai-validate-json').addEventListener('click', async function() {
+  const jsonText = document.getElementById('ai-json-input').value.trim();
+  if (!jsonText) {
+    modalWarning('{% trans "Please paste JSON" %}', '{% trans "Warning" %}');
+    return;
+  }
+
+  const examType = document.querySelector('select[name="exam_type"]').value;
+  const language = 'vi';
+
+  showAILoading();
+
+  try {
+    const response = await fetch('{% url "ai_validate_json" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({ json_text: jsonText, exam_type: examType, language })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById('questions-json').value = JSON.stringify(data.questions, null, 2);
+      showAISuccess(data.count, data.questions);
+    } else {
+      showAIError(data.error || '{% trans "Validation failed" %}');
+    }
+  } catch (error) {
+    console.error('AI Error:', error);
+    showAIError('{% trans "Network error. Please try again." %}');
+  }
+});
+
+// File upload handling
+let selectedFile = null;
+
+document.getElementById('ai-browse-file').addEventListener('click', () => {
+  document.getElementById('ai-file-input').click();
+});
+
+document.getElementById('ai-file-input').addEventListener('change', function(e) {
+  if (e.target.files.length > 0) {
+    selectedFile = e.target.files[0];
+    
+    // Check file size (10MB max)
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      modalError('{% trans "File too large! Maximum size is 10MB" %}', '{% trans "Error" %}');
+      selectedFile = null;
+      e.target.value = '';
+      return;
+    }
+    
+    document.getElementById('ai-file-name').textContent = selectedFile.name;
+    document.getElementById('ai-file-size').textContent = formatFileSize(selectedFile.size);
+    document.getElementById('ai-file-info').classList.remove('hidden');
+    document.getElementById('ai-convert-file').disabled = false;
+  }
+});
+
+document.getElementById('ai-remove-file').addEventListener('click', () => {
+  selectedFile = null;
+  document.getElementById('ai-file-input').value = '';
+  document.getElementById('ai-file-info').classList.add('hidden');
+  document.getElementById('ai-convert-file').disabled = true;
+});
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+// Convert file to JSON
+document.getElementById('ai-convert-file').addEventListener('click', async function() {
+  if (!selectedFile) return;
+
+  const examType = document.querySelector('select[name="exam_type"]').value;
+  const language = 'vi';
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  formData.append('exam_type', examType);
+  formData.append('language', language);
+
+  showAILoading();
+
+  try {
+    const response = await fetch('{% url "ai_convert_file" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById('questions-json').value = JSON.stringify(data.questions, null, 2);
+      showAISuccess(data.count, data.questions);
+    } else {
+      showAIError(data.error || '{% trans "File conversion failed" %}');
+    }
+  } catch (error) {
+    console.error('AI Error:', error);
+    showAIError('{% trans "Network error. Please try again." %}');
+  }
+});
+
+// ========== Form Submission ==========
+
 document.getElementById('exam-form').addEventListener('submit', function(e) {
   e.preventDefault();
   
@@ -152,10 +510,16 @@ document.getElementById('exam-form').addEventListener('submit', function(e) {
   const submitBtn = this.querySelector('button[type="submit"]');
   
   // Validate JSON
+  const questionsJson = formData.get('questions');
+  if (!questionsJson || questionsJson.trim() === '') {
+    modalWarning('{% trans "Please generate questions using AI first!" %}', '{% trans "Warning" %}');
+    return;
+  }
+  
   try {
-    JSON.parse(formData.get('questions'));
+    JSON.parse(questionsJson);
   } catch (e) {
-    alert('{% trans "Invalid JSON format in questions field" %}');
+    modalError('{% trans "Invalid JSON format in questions field" %}', '{% trans "Error" %}');
     return;
   }
   
@@ -172,19 +536,27 @@ document.getElementById('exam-form').addEventListener('submit', function(e) {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      alert('{% trans "Exam created successfully!" %}');
-      window.location.href = '{% url "teaching_content" %}';
+      modalSuccess('{% trans "Exam created successfully!" %}', '{% trans "Success" %}').then(() => {
+        window.location.href = '{% url "teaching_content" %}';
+      });
     } else {
-      alert('{% trans "Error" %}: ' + data.error);
+      modalError('{% trans "Error" %}: ' + data.error, '{% trans "Error" %}');
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>{% trans "Create Exam" %}';
     }
   })
   .catch(error => {
-    alert('{% trans "Error creating exam" %}');
+    console.error('Submit Error:', error);
+    modalError('{% trans "Error creating exam" %}', '{% trans "Error" %}');
     submitBtn.disabled = false;
     submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>{% trans "Create Exam" %}';
   });
 });
 </script>
+
+<style>
+.ai-tab-button.active {
+  color: var(--color-primary);
+}
+</style>
 {% endblock %}

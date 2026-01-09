@@ -526,14 +526,14 @@
       if (data.success) {
         showResults(data);
       } else {
-        alert('Error: ' + data.error);
+        modalError('Error: ' + data.error, 'Quiz Error');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit Quiz" %}';
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('An error occurred while submitting the quiz.');
+      modalError('An error occurred while submitting the quiz.', 'Error');
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit Quiz" %}';
     });
@@ -746,7 +746,7 @@
       });
     }).catch(error => {
       console.error('Failed to load CodeMirror:', error);
-      alert('Failed to load code editor. Please refresh the page.');
+      modalError('Failed to load code editor. Please refresh the page.', 'Error');
     });
   }
 

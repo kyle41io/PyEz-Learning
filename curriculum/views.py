@@ -1111,6 +1111,7 @@ def create_exam_view(request):
 
 
 @login_required(login_url='signin')
+@login_required(login_url='signin')
 def teacher_exam_results_view(request, exam_id):
     """Wrapper for teacher_exam_results from exams app"""
     from exams.views import teacher_exam_results

@@ -93,6 +93,124 @@ let examTimer = null;
 let examTimeRemaining = examDurationMinutes * 60; // in seconds
 let examInProgress = false;
 let allowNavigation = false;
+let examEntryRecorded = false;
+
+// ========== EXAM LOCKDOWN SYSTEM ==========
+// Record exam entry and prevent navigation
+
+function recordExamEntry() {
+  if (examEntryRecorded) return;
+  
+  fetch('{% url "exam_entry" exam.id %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({ entered_at: new Date().toISOString() })
+  }).then(() => {
+    examEntryRecorded = true;
+  }).catch(error => {
+    console.error('Failed to record exam entry:', error);
+  });
+}
+
+// Prevent navigation during exam
+window.addEventListener('beforeunload', function(e) {
+  if (examInProgress && !allowNavigation) {
+    e.preventDefault();
+    e.returnValue = 'If you leave now, your exam will be submitted with your current answers and you cannot retake it.';
+    
+    // Auto-submit when user tries to leave
+    const answers = getCurrentAnswers();
+    submitExamOnAbandon(answers);
+    
+    return e.returnValue;
+  }
+});
+
+// Detect tab/window visibility change
+document.addEventListener('visibilitychange', function() {
+  if (examInProgress && !allowNavigation && document.hidden) {
+    modalWarning("Leaving the exam tab. Your exam will be auto-submitted if you don't return.", 'Warning');
+    
+    // Give 5 seconds grace period
+    setTimeout(() => {
+      if (examInProgress && !allowNavigation && document.hidden) {
+        const answers = getCurrentAnswers();
+        submitExamOnAbandon(answers);
+      }
+    }, 5000);
+  }
+});
+
+// Prevent back button during exam
+window.addEventListener('popstate', function(e) {
+  if (examInProgress && !allowNavigation) {
+    e.preventDefault();
+    history.pushState(null, '', window.location.href);
+    modalWarning("You cannot navigate back during the exam. Complete or submit your exam first.", "Navigation Blocked");
+  }
+});
+
+// Push state to prevent back navigation
+function lockNavigation() {
+  history.pushState(null, '', window.location.href);
+}
+
+function getCurrentAnswers() {
+  const answers = {};
+  
+  {% if exam.exam_type == 'multi_choice' %}
+  const allQuestions = document.querySelectorAll('[data-question-id]');
+  allQuestions.forEach(questionDiv => {
+    const questionId = questionDiv.dataset.questionId;
+    const selected = questionDiv.querySelector('input[type="radio"]:checked');
+    if (selected) {
+      answers[questionId] = parseInt(selected.value);
+    }
+  });
+  {% else %}
+  // For coding exams, get code from editors
+  Object.keys(codeEditors).forEach(problemId => {
+    if (passedProblems.has(parseInt(problemId))) {
+      answers[problemId] = {
+        code: codeEditors[problemId].getValue(),
+        passed: true
+      };
+    }
+  });
+  {% endif %}
+  
+  return answers;
+}
+
+function submitExamOnAbandon(answers) {
+  allowNavigation = true;
+  examInProgress = false;
+  
+  if (examTimer) {
+    clearInterval(examTimer);
+  }
+  
+  // Submit silently
+  fetch('{% url "submit_exam" exam.id %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({ 
+      answers: answers,
+      abandoned: true,
+      time_spent: examDurationMinutes * 60 - examTimeRemaining
+    })
+  }).catch(error => {
+    console.error('Failed to submit abandoned exam:', error);
+  });
+}
+
+// ========== END LOCKDOWN SYSTEM ==========
 
 function startExam() {
   document.getElementById('exam-intro').classList.add('hidden');
@@ -108,8 +226,12 @@ function startExam() {
   document.getElementById('timer-bar').classList.remove('hidden');
   document.getElementById('exam-header').style.marginTop = '80px';
   
-  // Start countdown timer
+  // ACTIVATE EXAM LOCKDOWN
   examInProgress = true;
+  lockNavigation();
+  recordExamEntry();
+  
+  // Start countdown timer
   startCountdownTimer();
   
   {% if exam.exam_type == 'coding' %}
@@ -154,7 +276,7 @@ function updateTimerDisplay() {
 }
 
 function autoSubmitExam() {
-  alert('{% trans "Time is up! Your exam will be submitted automatically." %}');
+  modalWarning('{% trans "Time is up! Your exam will be submitted automatically." %}', '{% trans "Time is Up" %}');
   allowNavigation = true;
   
   {% if exam.exam_type == 'multi_choice' %}
@@ -419,7 +541,7 @@ function submitExamToServer(answers) {
     if (data.success) {
       showExamResults(data);
     } else {
-      alert('{% trans "Error" %}: ' + data.error);
+      modalError('{% trans "Error" %}: ' + data.error, '{% trans "Error" %}');
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit" %}';
@@ -427,7 +549,7 @@ function submitExamToServer(answers) {
     }
   })
   .catch(error => {
-    alert('{% trans "Error submitting exam" %}');
+    modalError('{% trans "Error submitting exam" %}', '{% trans "Error" %}');
     if (submitBtn) {
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>{% trans "Submit" %}';

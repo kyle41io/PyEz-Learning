@@ -200,12 +200,12 @@
           if (data.success) {
             location.reload();
           } else {
-            alert('{% trans "Failed to update student status" %}');
+            modalError('{% trans "Failed to update student status" %}', '{% trans "Error" %}');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('{% trans "An error occurred" %}');
+          modalError('{% trans "An error occurred" %}', '{% trans "Error" %}');
         });
     }
   }

@@ -75,6 +75,11 @@ class ExamSubmission(models.Model):
     stars_earned = models.IntegerField(default=0, help_text="Stars earned based on score")
     submitted_at = models.DateTimeField(auto_now_add=True)
     
+    # Exam lockdown tracking
+    entered_at = models.DateTimeField(null=True, blank=True, help_text="When student entered the exam")
+    abandoned = models.BooleanField(default=False, help_text="True if student abandoned the exam (navigated away)")
+    time_spent_seconds = models.IntegerField(default=0, help_text="Time spent on exam in seconds")
+    
     class Meta:
         unique_together = ['exam', 'student']  # Each student can only submit once per exam
     

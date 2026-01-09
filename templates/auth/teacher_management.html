@@ -208,7 +208,7 @@
           if (data.success) {
             location.reload();
           } else {
-            alert('{% trans "Failed to update teacher status" %}');
+            modalError('{% trans "Failed to update teacher status" %}', '{% trans "Error" %}');
           }
         })
         .catch(error => {

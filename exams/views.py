@@ -3,11 +3,17 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.db.models import Count, Avg
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 import json
+import os
+import tempfile
 
 from .models import ActiveExam, ExamSubmission
 from users.models import User
+from .ai_converter import get_ai_converter
 
 
 @login_required
@@ -111,17 +117,61 @@ def exam_detail(request, exam_id):
 
 @login_required
 @require_POST
+def exam_entry(request, exam_id):
+    """Record when a student enters/starts an exam"""
+    exam = get_object_or_404(ActiveExam, id=exam_id)
+    
+    # Check if already has a submission or entry record
+    existing = ExamSubmission.objects.filter(exam=exam, student=request.user).first()
+    if existing:
+        return JsonResponse({'success': False, 'error': 'Already entered or submitted'}, status=400)
+    
+    try:
+        # Create a temporary submission record to mark entry
+        # This prevents re-entry even if they abandon
+        submission = ExamSubmission.objects.create(
+            exam=exam,
+            student=request.user,
+            entered_at=timezone.now(),
+            answers={},
+            score=0,
+            total_questions=len(exam.questions),
+            stars_earned=0
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Exam entry recorded'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+@require_POST
 def submit_exam(request, exam_id):
     """Student submits exam answers"""
     exam = get_object_or_404(ActiveExam, id=exam_id)
     
-    # Check if already submitted
-    if ExamSubmission.objects.filter(exam=exam, student=request.user).exists():
-        return JsonResponse({'success': False, 'error': 'Already submitted'}, status=400)
-    
     try:
         data = json.loads(request.body)
         answers = data.get('answers', {})
+        abandoned = data.get('abandoned', False)
+        time_spent = data.get('time_spent', 0)
+        
+        # Get or create submission (in case entry wasn't recorded)
+        submission, created = ExamSubmission.objects.get_or_create(
+            exam=exam,
+            student=request.user,
+            defaults={
+                'answers': {},
+                'score': 0,
+                'total_questions': len(exam.questions),
+                'stars_earned': 0,
+                'entered_at': timezone.now()
+            }
+        )
+        
+        # If already submitted with valid score, don't allow resubmission
+        if not created and submission.score > 0:
+            return JsonResponse({'success': False, 'error': 'Already submitted'}, status=400)
         
         # Calculate score based on exam type
         if exam.exam_type == 'multi_choice':
@@ -129,29 +179,32 @@ def submit_exam(request, exam_id):
         else:  # coding
             score, total = calculate_coding_score(exam.questions, answers)
         
-        # Calculate stars earned
-        stars_earned = int((score / total) * exam.points_value) if total > 0 else 0
+        # Calculate stars earned (reduced if abandoned)
+        penalty = 0.5 if abandoned else 1.0
+        stars_earned = int((score / total) * exam.points_value * penalty) if total > 0 else 0
         
-        # Create submission
-        submission = ExamSubmission.objects.create(
-            exam=exam,
-            student=request.user,
-            answers=answers,
-            score=score,
-            total_questions=total,
-            stars_earned=stars_earned
-        )
+        # Update submission
+        submission.answers = answers
+        submission.score = score
+        submission.total_questions = total
+        submission.stars_earned = stars_earned
+        submission.abandoned = abandoned
+        submission.time_spent_seconds = time_spent
+        submission.submitted_at = timezone.now()
+        submission.save()
         
-        # Award stars to student
-        request.user.star_points += stars_earned
-        request.user.save()
+        # Award stars to student (only if not already awarded)
+        if created or submission.stars_earned == 0:
+            request.user.star_points += stars_earned
+            request.user.save()
         
         return JsonResponse({
             'success': True,
             'score': score,
             'total': total,
             'stars_earned': stars_earned,
-            'percentage': int((score / total) * 100) if total > 0 else 0
+            'percentage': int((score / total) * 100) if total > 0 else 0,
+            'abandoned': abandoned
         })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
@@ -296,3 +349,124 @@ def calculate_coding_score(problems, answers):
                 score += 1
     
     return score, total
+
+
+# AI-Assisted Exam Creation Views
+@login_required
+@require_POST
+@ensure_csrf_cookie
+def ai_convert_text(request):
+    """Convert natural language text to exam JSON using AI"""
+    if not request.user.is_teacher:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        text = data.get('text', '').strip()
+        exam_type = data.get('exam_type', 'multi_choice')
+        language = data.get('language', 'vi')
+        
+        if not text:
+            return JsonResponse({'success': False, 'error': 'Text is required'}, status=400)
+        
+        # Use AI converter
+        converter = get_ai_converter()
+        result = converter.convert_text_to_exam(text, exam_type, language)
+        
+        return JsonResponse(result)
+    
+    except Exception as e:
+        error_msg = str(e)
+        # Check for quota/rate limit errors
+        if '429' in error_msg or 'quota' in error_msg.lower() or 'rate limit' in error_msg.lower():
+            return JsonResponse({
+                'success': False, 
+                'error': 'AI service is temporarily busy. Please try again in a minute or use a simpler prompt.'
+            }, status=429)
+        return JsonResponse({'success': False, 'error': f'AI Error: {error_msg}'}, status=500)
+
+
+@login_required
+@require_POST
+@ensure_csrf_cookie
+def ai_convert_file(request):
+    """Convert uploaded file to exam JSON using AI"""
+    if not request.user.is_teacher:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    try:
+        uploaded_file = request.FILES.get('file')
+        exam_type = request.POST.get('exam_type', 'multi_choice')
+        language = request.POST.get('language', 'vi')
+        
+        if not uploaded_file:
+            return JsonResponse({'success': False, 'error': 'File is required'}, status=400)
+        
+        # Check file size (max 10MB)
+        if uploaded_file.size > 10 * 1024 * 1024:
+            return JsonResponse({'success': False, 'error': 'File too large (max 10MB)'}, status=400)
+        
+        # Save file temporarily
+        file_ext = os.path.splitext(uploaded_file.name)[1].lower()
+        if file_ext not in ['.txt', '.pdf']:
+            return JsonResponse({'success': False, 'error': 'Only .txt and .pdf files are supported'}, status=400)
+        
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
+            for chunk in uploaded_file.chunks():
+                tmp_file.write(chunk)
+            tmp_file_path = tmp_file.name
+        
+        try:
+            # Use AI converter
+            converter = get_ai_converter()
+            result = converter.convert_file_to_exam(tmp_file_path, exam_type, language)
+            return JsonResponse(result)
+        finally:
+            # Clean up temporary file
+            if os.path.exists(tmp_file_path):
+                os.remove(tmp_file_path)
+    
+    except Exception as e:
+        error_msg = str(e)
+        # Check for quota/rate limit errors
+        if '429' in error_msg or 'quota' in error_msg.lower() or 'rate limit' in error_msg.lower():
+            return JsonResponse({
+                'success': False, 
+                'error': 'AI service is temporarily busy. Please try again in a minute or use a simpler file.'
+            }, status=429)
+        return JsonResponse({'success': False, 'error': f'AI Error: {error_msg}'}, status=500)
+
+
+@login_required
+@require_POST
+@ensure_csrf_cookie
+def ai_validate_json(request):
+    """Validate and fix JSON format using AI"""
+    if not request.user.is_teacher:
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        json_text = data.get('json_text', '').strip()
+        exam_type = data.get('exam_type', 'multi_choice')
+        language = data.get('language', 'vi')
+        
+        if not json_text:
+            return JsonResponse({'success': False, 'error': 'JSON text is required'}, status=400)
+        
+        # Use AI converter to validate and fix
+        converter = get_ai_converter()
+        result = converter.validate_and_fix_json(json_text, exam_type, language)
+        
+        return JsonResponse(result)
+    
+    except Exception as e:
+        error_msg = str(e)
+        # Check for quota/rate limit errors
+        if '429' in error_msg or 'quota' in error_msg.lower() or 'rate limit' in error_msg.lower():
+            return JsonResponse({
+                'success': False, 
+                'error': 'AI service is temporarily busy. Please try again in a minute.'
+            }, status=429)
+        return JsonResponse({'success': False, 'error': f'AI Error: {error_msg}'}, status=500)

@@ -216,6 +216,9 @@ SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 
+# OpenAI API Key for AI-assisted exam creation (ChatGPT)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+
 # Default file size
 DEFAULT_CHARSET = 'utf-8'
 
